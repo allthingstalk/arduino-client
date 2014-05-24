@@ -18,6 +18,7 @@ char MQTTSERVTEXT[] = "connection MQTT Server";
 char FAILED_RETRY[] = " failed,retrying";
 char SUCCESTXT[] = " established";
 #endif
+char _mac[5];
 
 //create the object
 ATTDevice::ATTDevice(String deviceId, String clientId, String clientKey)
@@ -36,6 +37,9 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 		Serial.println(F("DHCP failed,end"));
 		return false;							//we failed to connect
 	}
+	for(int i = 0; i < 5; i++)					//copy the mac address to a char buffer so we can use it later on to connect to mqtt.
+		_mac[i] = (char)mac[i];
+	_mac[4] = 0;
 	delay(ETHERNETDELAY);				// give the Ethernet shield a second to initialize:
 	
 	#ifdef DEBUG
@@ -97,7 +101,7 @@ void ATTDevice::Subscribe(PubSubClient& mqttclient)
 	_client.stop();
 	
 	//delay(RETRYDELAY); 						//give the ethernet card a little time to stop properly before working with mqtt.
-	while (!_mqttclient->connect("arduinoClient")) 
+	while (!_mqttclient->connect(_mac)) 
 	{
 		#ifdef DEBUG
 		Serial.print(MQTTSERVTEXT);

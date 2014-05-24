@@ -23,7 +23,7 @@ class ATTDevice
 		ATTDevice(String deviceId, String clientId, String clientKey);
 		
 		/*connect with the http server (call first)
-		-mac: the mac address of the arduino
+		-mac: the mac address of the arduino (4 bytes)
 		-httpServer: the name of the http server to use, kept in memory until after calling 'Subscribe' 
 		returns: true when subscribe was succesfulll, otherwise false.*/
 		bool Connect(byte mac[], char httpServer[]);
