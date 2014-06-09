@@ -40,7 +40,7 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 	_mac = String(mac[0], HEX);
 	for(int i = 1; i < 6; i++)					//copy the mac address to a char buffer so we can use it later on to connect to mqtt.
 		_mac += "-" + String(mac[i], HEX);
-	delay(ETHERNETDELAY);				// give the Ethernet shield a second to initialize:
+	delay(ETHERNETDELAY);							// give the Ethernet shield a second to initialize:
 	
 	#ifdef DEBUG
 	Serial.println(_mac);
@@ -70,10 +70,10 @@ void ATTDevice::AddAsset(String name, String description, bool isActuator, Strin
 		jsonString += "actuator";
 	else
 		jsonString += "sensor";
-    jsonString += "\",\"profile\": { \"type\":\"" + type + "\" } }";
+    jsonString += "\",\"profile\": { \"type\":\"" + type + "\" }, \"deviceId\":\"" + _deviceId + "\" }";
     
     // Make a HTTP request:
-    _client.print(F("POST /api/v1/device/"));_client.print(_deviceId);_client.println(F("/asset HTTP/1.1"));
+    _client.print(F("POST /api/asset?idFromName=true HTTP/1.1"));
     _client.print(F("Host: "));
     _client.println(_serverName);
     _client.println(F("Content-Type: application/json"));
@@ -102,7 +102,7 @@ void ATTDevice::Subscribe(PubSubClient& mqttclient)
 	_client.stop();
 	
 	//delay(RETRYDELAY); 						//give the ethernet card a little time to stop properly before working with mqtt.
-	while (!_mqttclient->connect("janstest")) 
+	while (!_mqttclient->connect(_mac)) 
 	{
 		#ifdef DEBUG
 		Serial.print(MQTTSERVTEXT);
