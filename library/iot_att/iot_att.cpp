@@ -18,7 +18,7 @@ char MQTTSERVTEXT[] = "connection MQTT Server";
 char FAILED_RETRY[] = " failed,retrying";
 char SUCCESTXT[] = " established";
 #endif
-String _mac;
+char _mac[18];
 
 //create the object
 ATTDevice::ATTDevice(String deviceId, String clientId, String clientKey)
@@ -37,9 +37,10 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 		Serial.println(F("DHCP failed,end"));
 		return false;							//we failed to connect
 	}
-	_mac = String(mac[0], HEX);
+	String macStr = String(mac[0], HEX);
 	for(int i = 1; i < 6; i++)					//copy the mac address to a char buffer so we can use it later on to connect to mqtt.
-		_mac += "-" + String(mac[i], HEX);
+		macStr += "-" + String(mac[i], HEX);
+	macStr.toCharArray(_mac, 18);
 	delay(ETHERNETDELAY);							// give the Ethernet shield a second to initialize:
 	
 	#ifdef DEBUG
@@ -57,6 +58,7 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 	#ifdef DEBUG
 	Serial.print(HTTPSERVTEXT);
 	Serial.println(SUCCESTXT);
+
 	#endif
 	return true;									//we have created a connection succesfully.
 }
@@ -73,15 +75,14 @@ void ATTDevice::AddAsset(String name, String description, bool isActuator, Strin
     jsonString += "\",\"profile\": { \"type\":\"" + type + "\" }, \"deviceId\":\"" + _deviceId + "\" }";
     
     // Make a HTTP request:
-    _client.print(F("POST /api/asset?idFromName=true HTTP/1.1"));
+    _client.println(F("POST /api/asset?idFromName=true HTTP/1.1"));
     _client.print(F("Host: "));
     _client.println(_serverName);
     _client.println(F("Content-Type: application/json"));
     _client.print(F("Auth-ClientKey: "));_client.println(_clientKey);
     _client.print(F("Auth-ClientId: "));_client.println(_clientId); 
-    _client.print(F("Content-Length: "));
-    int thisLength = jsonString.length();
-    _client.println(thisLength);
+	_client.print("Content-Length: ");
+	_client.println(jsonString.length());
     _client.println();
     _client.println(jsonString);
     _client.println();

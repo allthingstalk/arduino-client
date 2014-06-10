@@ -18,11 +18,11 @@ byte mac[]    = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x4A }; 	                 // pl
 
 int ValueIn = 0;								 // Analog 0 is the input pin
 //important: don't use captions
-char sensorName[] = "Potentiometer";						 // name of the sensor, used to define the sensor on the iot platform.
+char sensorName[] = "name_of_your_sensor";					 // name of the sensor, used to define the sensor on the iot platform.
 
 int ledPin = 8;								         // Pin 8 is the LED output pin	
 //important: don't use captions
-char actuatorName[] = "blue-led";					         // name of the actuator, used to identify the actuator on the iot platform.
+char actuatorName[] = "name_of_your_actuator";					 // name of the actuator, used to identify the actuator on the iot platform.
 
 
 char htmlServer[] = "att-1.apphb.com";  					 // HTTP Server
@@ -37,8 +37,8 @@ void setup()
   Serial.begin(9600);							        // init serial link for debugging
   if(Device.Connect(mac, htmlServer))					        // connect the device with the IOT platform.
   {
-    Device.AddAsset(sensorName, "Just a simple turn knob", false, "int");	// make certain that the iot platform knows the assets of the device: this is a sensor.
-    Device.AddAsset(actuatorName, "Just a fancy LED", true, "bool");            // this is an actuator.
+    Device.AddAsset(sensorName, "Put your description here", false, "int");	// make certain that the iot platform knows the assets of the device: this is a sensor.
+    Device.AddAsset(actuatorName, "Put your description here", true, "bool");   // this is an actuator.
     Device.Subscribe(pubSub);						        // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else
