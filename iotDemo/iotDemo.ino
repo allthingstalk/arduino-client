@@ -6,36 +6,65 @@
 #include <Time.h>				//so we can send values at a fixed rate.
 
 /*
-AllThingsTalk Makers Arduino Example 
+  AllThingsTalk Makers Arduino Example 
+
+  ### Instructions
+
+  1. Setup the Arduino hardware
+    - USB2Serial
+    - Grove kit shield
+    - Potentiometer to A0
+    - Led light to D8
+  1. Add 'iot_att' library to your Arduino Environment. [Try this guide](http://arduino.cc/en/Guide/Libraries)
+  1. Upload the sketch
+
+  ### Troubleshooting
+
+  1. 'Device' type is reported to be missing. 
+  - Make sure to properly add the 'iot_att' library
+
 */
 
+char deviceId[] = "";   // Your device id comes here
+char clientId[] = "";   // Your client id comes here";
+char clientKey[] = "";  // Your client key comes here";
+
 //create the object that provides the connection to the cloud to manager the device.
-ATTDevice Device("Your device id comes here.", "your client id comes here", "your client key comes here");
+ATTDevice Device(deviceId, clientId, clientKey);
 
+// HTTP API Server host
+char httpServer[] = "att-2.apphb.com";             
 
-// Update these with values suitable for your network.
-byte mac[]    = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x4A }; 	                 // please adopt to your Personal MAC Address !!! see on backside Arduino 
+// MQTT(ATT1) Server IP Address
+byte mqttServer[] = { 188, 64, 51, 226 };      
 
-int ValueIn = 0;								 // Analog 0 is the input pin
+// Adapt to your Arduino MAC Address  <-- @jan seems that mac address is used to uniquely identify the client when connecting to MQTT Broker. Is there other use cases?
+byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x4A }; 	                 
+
+// Analog 0 is the input pin
+int ValueIn = 0;						
+
+// name of the sensor, used to define the sensor on the iot platform.
+// important: don't use captions <-- @jan why is this relevant?
+char sensorName[] = "rotary-angle-sensor";
+
+// Pin 8 is the LED output pin 
+int ledPin = 8;
+
 //important: don't use captions
-char sensorName[] = "name_of_your_sensor";					 // name of the sensor, used to define the sensor on the iot platform.
+// name of the actuator, used to identify the actuator on the iot platform.                              
+char actuatorName[] = "led-socket";
 
-int ledPin = 8;								         // Pin 8 is the LED output pin	
-//important: don't use captions
-char actuatorName[] = "name_of_your_actuator";					 // name of the actuator, used to identify the actuator on the iot platform.
-
-
-char htmlServer[] = "att-1.apphb.com";  					 // HTTP Server
-byte mqttServer[] = { 188, 64, 53, 92 };					 // MQTT(ATT1) Part
-void callback(char* topic, byte* payload, unsigned int length);			 //required for the device
-EthernetClient ethClient;							 //required for the device
-PubSubClient pubSub(mqttServer, 1883, callback, ethClient);			 //required for the device
+//required for the device
+void callback(char* topic, byte* payload, unsigned int length);
+EthernetClient ethClient;
+PubSubClient pubSub(mqttServer, 1883, callback, ethClient);
 
 void setup()
 {
   pinMode(ledPin, OUTPUT);					                // initialize the digital pin as an output.
   Serial.begin(9600);							        // init serial link for debugging
-  if(Device.Connect(mac, htmlServer))					        // connect the device with the IOT platform.
+  if(Device.Connect(mac, httpServer))					        // connect the device with the IOT platform.
   {
     Device.AddAsset(sensorName, "Put your description here", false, "int");	// make certain that the iot platform knows the assets of the device: this is a sensor.
     Device.AddAsset(actuatorName, "Put your description here", true, "bool");   // this is an actuator.

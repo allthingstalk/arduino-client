@@ -1,5 +1,9 @@
 /*
-AllThingsTalk - SmartLiving.io Arduino library 
+	iot_att.cpp - SmartLiving.io Arduino library 
+
+	Morse.cpp - Library for flashing Morse code.
+	Created by David A. Mellis, November 2, 2007.
+	Released into the public domain.
 */
 
 #define DEBUG					//turns on debugging in the IOT library. comment out this line to save memory.
@@ -15,7 +19,7 @@ AllThingsTalk - SmartLiving.io Arduino library
 #ifdef DEBUG
 char HTTPSERVTEXT[] = "connection HTTP Server";
 char MQTTSERVTEXT[] = "connection MQTT Server";
-char FAILED_RETRY[] = " failed,retrying";
+char FAILED_RETRY[] = " failed, retrying";
 char SUCCESTXT[] = " established";
 #endif
 char _mac[18];
@@ -45,8 +49,9 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 	
 	#ifdef DEBUG
 	Serial.println(_mac);
-	Serial.println(F("connecting"));
+	Serial.println(F("Connecting"));
 	#endif
+
 	while (!_client.connect(httpServer, 80)) 		// if you get a connection, report back via serial:
 	{
 		#ifdef DEBUG
@@ -55,10 +60,10 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 		#endif
 		delay(RETRYDELAY);
 	}
+
 	#ifdef DEBUG
 	Serial.print(HTTPSERVTEXT);
 	Serial.println(SUCCESTXT);
-
 	#endif
 	return true;									//we have created a connection succesfully.
 }
@@ -86,9 +91,11 @@ void ATTDevice::AddAsset(String name, String description, bool isActuator, Strin
     _client.println();
     _client.println(jsonString);
     _client.println();
+ 
     Serial.println(jsonString);  //show it on the screen
+ 
     delay(ETHERNETDELAY);
-	GetHTTPResult();			//get the response fromm the server and show it.
+	GetHTTPResult();			//get the response from the server and show it.
 }
 
 //connect with the http server and broker
@@ -140,7 +147,7 @@ void ATTDevice::Send(String value, String sensorId)
 	#endif
 	Serial.println(pubString);																	//this value is still useful and generated anyway, so no extra cost.
 	
-	String Mqttstring = "/f/" + _clientId + "/s/" + _deviceId + "/" + sensorId;
+	String Mqttstring = "/f/" + _clientId + "/s/" + _deviceId + sensorId;
 	length = Mqttstring.length() + 1;
 	char Mqttstring_buff[length];
 	Mqttstring.toCharArray(Mqttstring_buff, length);      
@@ -151,15 +158,16 @@ void ATTDevice::Send(String value, String sensorId)
 //subscribe to the mqtt topic so we can receive data from the server.
 void ATTDevice::MqttSubscribe()
 {
-	String MqttString = "/m/"+_clientId+"/#";
+	String MqttString = "/m/" + _clientId + "/#";
 	char Mqttstring_buff[MqttString.length()+1];
     MqttString.toCharArray(Mqttstring_buff, MqttString.length()+1);
     _mqttclient->subscribe(Mqttstring_buff);
 	
-	Mqttstring_buff[1]  = 's';				//change from /m/ClientId/#  to /s/ClientId/# 
+	Mqttstring_buff[1] = 's';				//change from /m/ClientId/#  to /s/ClientId/# 
     _mqttclient->subscribe(Mqttstring_buff);
+
 	#ifdef DEBUG
-    Serial.println(F("MQTT Subscribed..."));
+    Serial.print(F("MQTT Client subscribed to: ")); Serial.println(Mqttstring_buff);
 	#endif
 }
 
