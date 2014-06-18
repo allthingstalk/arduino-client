@@ -140,7 +140,7 @@ void ATTDevice::Send(String value, String sensorId)
 	#endif
 	Serial.println(pubString);																	//this value is still useful and generated anyway, so no extra cost.
 	
-	String Mqttstring = "/f/" + _clientId + "/s/" + _deviceId + "/" + sensorId;
+	String Mqttstring = "/f/" + _clientId + "/s/" + _deviceId + sensorId;
 	length = Mqttstring.length() + 1;
 	char Mqttstring_buff[length];
 	Mqttstring.toCharArray(Mqttstring_buff, length);      
