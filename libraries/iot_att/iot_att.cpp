@@ -69,18 +69,23 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 }
 
 //create or update the specified asset.
-void ATTDevice::AddAsset(String name, String description, bool isActuator, String type)
+void ATTDevice::AddAsset(String assetId, String name, String description, bool isActuator, String type)
 {
     // form a JSON-formatted string:
     String jsonString = "{\"name\":\"" + name + "\",\"description\":\"" + description + "\",\"is\":\"";
-	if(isActuator)
+	if(isActuator) {
 		jsonString += "actuator";
-	else
+	}
+	else {
 		jsonString += "sensor";
+	}
+
     jsonString += "\",\"profile\": { \"type\":\"" + type + "\" }, \"deviceId\":\"" + _deviceId + "\" }";
     
+    Serial.println(jsonString);  //show it on the screen
+
     // Make a HTTP request:
-    _client.println(F("POST /api/asset?idFromName=true HTTP/1.1"));
+    _client.println("PUT /api/asset/" + assetId + " HTTP/1.1");
     _client.print(F("Host: "));
     _client.println(_serverName);
     _client.println(F("Content-Type: application/json"));
@@ -91,8 +96,6 @@ void ATTDevice::AddAsset(String name, String description, bool isActuator, Strin
     _client.println();
     _client.println(jsonString);
     _client.println();
- 
-    Serial.println(jsonString);  //show it on the screen
  
     delay(ETHERNETDELAY);
 	GetHTTPResult();			//get the response from the server and show it.
@@ -147,7 +150,7 @@ void ATTDevice::Send(String value, String sensorId)
 	#endif
 	Serial.println(pubString);																	//this value is still useful and generated anyway, so no extra cost.
 	
-	String Mqttstring = "/f/" + _clientId + "/s/" + _deviceId + sensorId;
+	String Mqttstring = "/f/" + _clientId + "/s/" + sensorId;
 	length = Mqttstring.length() + 1;
 	char Mqttstring_buff[length];
 	Mqttstring.toCharArray(Mqttstring_buff, length);      

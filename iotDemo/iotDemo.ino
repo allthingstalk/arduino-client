@@ -39,7 +39,7 @@ char httpServer[] = "att-2.apphb.com";
 byte mqttServer[] = { 188, 64, 51, 226 };      
 
 // Adapt to your Arduino MAC Address  <-- @jan seems that mac address is used to uniquely identify the client when connecting to MQTT Broker. Is there other use cases?
-byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x4A }; 	                 
+byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E }; 	                 
 
 // Analog 0 is the input pin
 int ValueIn = 0;						
@@ -55,6 +55,9 @@ int ledPin = 8;
 // name of the actuator, used to identify the actuator on the iot platform.                              
 char actuatorName[] = "led-socket";
 
+String sensorId = "";
+String actuatorId = "";
+
 //required for the device
 void callback(char* topic, byte* payload, unsigned int length);
 EthernetClient ethClient;
@@ -62,16 +65,30 @@ PubSubClient pubSub(mqttServer, 1883, callback, ethClient);
 
 void setup()
 {
-  pinMode(ledPin, OUTPUT);					                // initialize the digital pin as an output.
-  Serial.begin(9600);							        // init serial link for debugging
-  if(Device.Connect(mac, httpServer))					        // connect the device with the IOT platform.
+  // initialize the digital pin as an output.
+  pinMode(ledPin, OUTPUT);					      
+
+  // init serial link for debugging          
+  Serial.begin(9600);							        
+
+  // connect the device with the IOT platform.
+  if(Device.Connect(mac, httpServer))					        
   {
-    Device.AddAsset(sensorName, "Put your description here", false, "int");	// make certain that the iot platform knows the assets of the device: this is a sensor.
-    Device.AddAsset(actuatorName, "Put your description here", true, "bool");   // this is an actuator.
-    Device.Subscribe(pubSub);						        // make certain that we can receive message from the iot platform (activate mqtt)
+    sensorId += deviceId;
+    sensorId += sensorName;
+    Device.AddAsset(sensorId, sensorName, "Spinny potentiometer", false, "int");   
+
+    actuatorId += deviceId;
+    actuatorId += actuatorName;
+    Device.AddAsset(actuatorId, actuatorName, "Flashy light", true, "bool");
+    
+    // make certain that we can receive message from the iot platform (activate mqtt)
+    Device.Subscribe(pubSub);						        
   }
-  else
-    while(true);								//can't set up the device on the cloud, can't continue, so put the app in an ethernal loop so it doesn't do anything else anymore.
+  else {
+    //can't set up the device on the cloud, can't continue, so put the app in an ethernal loop so it doesn't do anything else anymore.
+    while(true);								
+  }
 }
 
 unsigned long time;							        //only send every x amount of time.
@@ -81,7 +98,7 @@ void loop()
   if (curTime > (time + 5000)) 							// publish light reading every 5 seconds to sensor 1
   {
     unsigned int lightRead = analogRead(ValueIn);			        // read from light sensor (photocell)
-    Device.Send(String(lightRead), sensorName);
+    Device.Send(String(lightRead), sensorId);
     time = curTime;
   }
   Device.Process(); 

@@ -29,7 +29,7 @@ class ATTDevice
 		bool Connect(byte mac[], char httpServer[]);
 		
 		//create or update the specified sensor. (call after connecting)
-		void AddAsset(String name, String description, bool isActuator, String type);
+		void AddAsset(String id, String name, String description, bool isActuator, String type);
 
 		/*Stop http processing & make certain that we can receive data from the mqtt server. */
 		void Subscribe(PubSubClient& mqttclient);
