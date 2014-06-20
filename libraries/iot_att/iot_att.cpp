@@ -69,23 +69,20 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 }
 
 //create or update the specified asset.
-void ATTDevice::AddAsset(String assetId, String name, String description, bool isActuator, String type)
+void ATTDevice::AddAsset(String& name, String description, bool isActuator, String type)
 {
     // form a JSON-formatted string:
     String jsonString = "{\"name\":\"" + name + "\",\"description\":\"" + description + "\",\"is\":\"";
-	if(isActuator) {
+	if(isActuator) 
 		jsonString += "actuator";
-	}
-	else {
+	else 
 		jsonString += "sensor";
-	}
-
     jsonString += "\",\"profile\": { \"type\":\"" + type + "\" }, \"deviceId\":\"" + _deviceId + "\" }";
     
     Serial.println(jsonString);  //show it on the screen
 
     // Make a HTTP request:
-    _client.println("PUT /api/asset/" + assetId + " HTTP/1.1");
+    _client.println("PUT /api/asset/" + _deviceId + name + " HTTP/1.1");
     _client.print(F("Host: "));
     _client.println(_serverName);
     _client.println(F("Content-Type: application/json"));
@@ -99,6 +96,7 @@ void ATTDevice::AddAsset(String assetId, String name, String description, bool i
  
     delay(ETHERNETDELAY);
 	GetHTTPResult();			//get the response from the server and show it.
+	name.toLowerCase();
 }
 
 //connect with the http server and broker
@@ -111,7 +109,12 @@ void ATTDevice::Subscribe(PubSubClient& mqttclient)
 	#endif
 	_client.flush();
 	_client.stop();
-	
+	MqttConnect();
+}
+
+//tries to create a connection with the mqtt broker. also used to try and reconnect.
+void ATTDevice::MqttConnect()
+{
 	//delay(RETRYDELAY); 						//give the ethernet card a little time to stop properly before working with mqtt.
 	while (!_mqttclient->connect(_mac)) 
 	{
@@ -135,8 +138,13 @@ void ATTDevice::Process()
 }
 
 //send a data value to the cloud server for the sensor with the specified id.
-void ATTDevice::Send(String value, String sensorId)
+void ATTDevice::Send(String value, String sensorName)
 {
+	if(_mqttclient->connected() == false)
+	{
+		Serial.println(F("Lost broker connection,restarting")); 
+		MqttConnect();
+	}
 	unsigned long timeNow = (unsigned long)now();
 
 	String pubString = String(timeNow) + "|" + value;
@@ -146,17 +154,18 @@ void ATTDevice::Send(String value, String sensorId)
 	
 	#ifdef DEBUG																					//don't need to write all of this if not debugging.
 	Serial.print(F("time = ")); Serial.println(timeNow);
-	Serial.print(F("Publish to ")); Serial.print(sensorId); Serial.print(" : "); 
+	Serial.print(F("Publish to ")); Serial.print(sensorName); Serial.print(" : "); 
 	#endif
 	Serial.println(pubString);																	//this value is still useful and generated anyway, so no extra cost.
 	
-	String Mqttstring = "/f/" + _clientId + "/s/" + sensorId;
+	String Mqttstring = "/f/" + _clientId + "/s/" + _deviceId + sensorName;
 	length = Mqttstring.length() + 1;
 	char Mqttstring_buff[length];
 	Mqttstring.toCharArray(Mqttstring_buff, length);      
 	_mqttclient->publish(Mqttstring_buff, message_buff);
 	delay(100);													//give some time to the ethernet shield so it can process everything.       
 }
+
 
 //subscribe to the mqtt topic so we can receive data from the server.
 void ATTDevice::MqttSubscribe()

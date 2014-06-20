@@ -29,13 +29,14 @@ class ATTDevice
 		bool Connect(byte mac[], char httpServer[]);
 		
 		//create or update the specified sensor. (call after connecting)
-		void AddAsset(String id, String name, String description, bool isActuator, String type);
+		//note: after this call, the name will be in lower case, so that it can be used to compare with the topic of incomming messages.
+		void AddAsset(String& name, String description, bool isActuator, String type);
 
 		/*Stop http processing & make certain that we can receive data from the mqtt server. */
 		void Subscribe(PubSubClient& mqttclient);
 		
-		//send a data value to the cloud server for the sensor with the specified id.
-		void Send(String value, String sensorId);
+		//send a data value to the cloud server for the sensor with the specified name.
+		void Send(String value, String sensorName);
 	
 		//check for any new mqtt messages.
 		void Process();
@@ -49,6 +50,9 @@ class ATTDevice
 		
 		//subscribe to the mqtt topic so we can receive data from the server.
 		void MqttSubscribe();
+		
+		//tries to create a connection with the mqtt broker. also used to try and reconnect.
+		void MqttConnect();
 		
 		//read all the data from the ethernet card and display on the debug screen.
 		void GetHTTPResult();
