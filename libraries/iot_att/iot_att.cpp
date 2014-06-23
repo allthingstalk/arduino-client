@@ -19,10 +19,9 @@
 #ifdef DEBUG
 char HTTPSERVTEXT[] = "connection HTTP Server";
 char MQTTSERVTEXT[] = "connection MQTT Server";
-char FAILED_RETRY[] = " failed, retrying";
+char FAILED_RETRY[] = " failed,retry";
 char SUCCESTXT[] = " established";
 #endif
-char _mac[18];
 
 //create the object
 ATTDevice::ATTDevice(String deviceId, String clientId, String clientKey)
@@ -41,14 +40,9 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 		Serial.println(F("DHCP failed,end"));
 		return false;							//we failed to connect
 	}
-	String macStr = String(mac[0], HEX);
-	for(int i = 1; i < 6; i++)					//copy the mac address to a char buffer so we can use it later on to connect to mqtt.
-		macStr += "-" + String(mac[i], HEX);
-	macStr.toCharArray(_mac, 18);
 	delay(ETHERNETDELAY);							// give the Ethernet shield a second to initialize:
 	
 	#ifdef DEBUG
-	Serial.println(_mac);
 	Serial.println(F("Connecting"));
 	#endif
 
@@ -65,6 +59,7 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 	Serial.print(HTTPSERVTEXT);
 	Serial.println(SUCCESTXT);
 	#endif
+	delay(ETHERNETDELAY);							// another small delay: sometimes the card is not yet ready to send the asset info.
 	return true;									//we have created a connection succesfully.
 }
 
@@ -79,8 +74,9 @@ void ATTDevice::AddAsset(String& name, String description, bool isActuator, Stri
 		jsonString += "sensor";
     jsonString += "\",\"profile\": { \"type\":\"" + type + "\" }, \"deviceId\":\"" + _deviceId + "\" }";
     
-    Serial.println(jsonString);  //show it on the screen
+    Serial.println(jsonString);  									//show it on the screen
 
+	//name.toLowerCase();												//convert the name to lower case
     // Make a HTTP request:
     _client.println("PUT /api/asset/" + _deviceId + name + " HTTP/1.1");
     _client.print(F("Host: "));
@@ -96,7 +92,6 @@ void ATTDevice::AddAsset(String& name, String description, bool isActuator, Stri
  
     delay(ETHERNETDELAY);
 	GetHTTPResult();			//get the response from the server and show it.
-	name.toLowerCase();
 }
 
 //connect with the http server and broker
@@ -115,8 +110,12 @@ void ATTDevice::Subscribe(PubSubClient& mqttclient)
 //tries to create a connection with the mqtt broker. also used to try and reconnect.
 void ATTDevice::MqttConnect()
 {
-	//delay(RETRYDELAY); 						//give the ethernet card a little time to stop properly before working with mqtt.
-	while (!_mqttclient->connect(_mac)) 
+	char mqttId[23]; // Or something long enough to hold the longest file name you will ever use.
+	int length = sizeof(_deviceId) > 22 ? 22 : sizeof(_deviceId);
+    _deviceId.toCharArray(mqttId, length);
+	mqttId[22] = 0;
+	Serial.println(mqttId);
+	while (!_mqttclient->connect(mqttId)) 
 	{
 		#ifdef DEBUG
 		Serial.print(MQTTSERVTEXT);
@@ -179,7 +178,7 @@ void ATTDevice::MqttSubscribe()
     _mqttclient->subscribe(Mqttstring_buff);
 
 	#ifdef DEBUG
-    Serial.print(F("MQTT Client subscribed to: ")); Serial.println(Mqttstring_buff);
+    Serial.print(F("MQTT Client subscribed"));
 	#endif
 }
 
