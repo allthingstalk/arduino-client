@@ -157,7 +157,7 @@ void ATTDevice::Send(String value, String sensorName)
 	#endif
 	Serial.println(pubString);																	//this value is still useful and generated anyway, so no extra cost.
 	
-	String Mqttstring = "/f/" + _clientId + "/s/" + _deviceId + sensorName;
+	String Mqttstring = "f/" + _clientId + "/a/" + _deviceId + sensorName;
 	length = Mqttstring.length() + 1;
 	char Mqttstring_buff[length];
 	Mqttstring.toCharArray(Mqttstring_buff, length);      
@@ -169,12 +169,12 @@ void ATTDevice::Send(String value, String sensorName)
 //subscribe to the mqtt topic so we can receive data from the server.
 void ATTDevice::MqttSubscribe()
 {
-	String MqttString = "/m/" + _clientId + "/#";
+	String MqttString = "m/" + _clientId + "/d/" + _deviceId + "/#";
 	char Mqttstring_buff[MqttString.length()+1];
     MqttString.toCharArray(Mqttstring_buff, MqttString.length()+1);
     _mqttclient->subscribe(Mqttstring_buff);
 	
-	Mqttstring_buff[1] = 's';				//change from /m/ClientId/#  to /s/ClientId/# 
+	Mqttstring_buff[0] = 's';				//change from m/ClientId/DeviceId/#  to s/ClientId/DeviceId/# 
     _mqttclient->subscribe(Mqttstring_buff);
 
 	#ifdef DEBUG
