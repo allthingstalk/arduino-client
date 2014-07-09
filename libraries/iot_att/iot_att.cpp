@@ -64,7 +64,7 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 }
 
 //create or update the specified asset.
-void ATTDevice::AddAsset(String& name, String description, bool isActuator, String type)
+void ATTDevice::AddAsset(String id, String name, String description, bool isActuator, String type)
 {
     // form a JSON-formatted string:
     String jsonString = "{\"name\":\"" + name + "\",\"description\":\"" + description + "\",\"is\":\"";
@@ -76,9 +76,8 @@ void ATTDevice::AddAsset(String& name, String description, bool isActuator, Stri
     
     Serial.println(jsonString);  									//show it on the screen
 
-	//name.toLowerCase();												//convert the name to lower case
     // Make a HTTP request:
-    _client.println("PUT /api/asset/" + _deviceId + name + " HTTP/1.1");
+    _client.println("PUT /api/asset/" + _deviceId + id + " HTTP/1.1");
     _client.print(F("Host: "));
     _client.println(_serverName);
     _client.println(F("Content-Type: application/json"));

@@ -32,13 +32,16 @@ char clientId[] = ""; // Your client id comes here";
 char clientKey[] = "";// Your client key comes here";
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "att-2.apphb.com";                      // HTTP API Server host
-byte mqttServer[] = { 188, 64, 51, 226 };                   // MQTT(ATT1) Server IP Address
+char httpServer[] = "beta.smartliving.io";                  // HTTP API Server host
+byte mqttServer[] = { 188, 64, 53, 92 };                   
+//char mqttServer[] = "broker.smartliving.io";					// MQTT(ATT1) Server IP Address
 
 byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E }; 	    // Adapt to your Arduino MAC Address  
 
-String sensorName = "Sensor name";                           // You have to supply a name for each sensor/actuator that you use.
-String actuatorName = "actuator name";                       
+String sensorName = "Sensor_name";                           // You have to supply a name for each sensor/actuator that you use.
+String sensorId = "1";										// uniquely identify this asset. Don't use spaces in the id.
+String actuatorName = "actuator_name";                       
+String actuatorId = "2";									// uniquely identify this asset. Don't use spaces in the id.
 
 int ValueIn = 0;                                            // Analog 0 is the input pin
 int ledPin = 8;                                             // Pin 8 is the LED output pin 
@@ -55,8 +58,8 @@ void setup()
   
   if(Device.Connect(mac, httpServer))					          // connect the device with the IOT platform.
   {
-    Device.AddAsset(sensorName, "your sensor description", false, "int");   
-    Device.AddAsset(actuatorName, "your actuator description", true, "bool");
+    Device.AddAsset(sensorId, sensorName, "your sensor description", false, "int");   
+    Device.AddAsset(actuatorId, actuatorName, "your actuator description", true, "bool");
     Device.Subscribe(pubSub);						        // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 
@@ -70,7 +73,7 @@ void loop()
   if (curTime > (time + 5000)) 							// publish light reading every 5 seconds to sensor 1
   {
     unsigned int lightRead = analogRead(ValueIn);			        // read from light sensor (photocell)
-    Device.Send(String(lightRead), sensorName);
+    Device.Send(String(lightRead), sensorId);
     time = curTime;
   }
   Device.Process(); 
@@ -93,15 +96,15 @@ void callback(char* topic, byte* payload, unsigned int length)
   Serial.println("Payload: " + msgString);			                //show some debugging.
   Serial.println("topic: " + topicStr);
 	
-  if (topicStr.endsWith(actuatorName)) 				                //warning: the topic will always be lowercase. This allows us to work with multiple actuators: the name of the actuator to use is at the end of the topic.
+  if (topicStr.endsWith(actuatorId)) 				                //warning: the topic will always be lowercase. This allows us to work with multiple actuators: the name of the actuator to use is at the end of the topic.
   {
     if (msgString == "false") {
       digitalWrite(ledPin, LOW);					        //change the led	
-      Device.Send(msgString, actuatorName);		                        //also let the iot platform know that the operation was succesful: give it some feedback. This also allows the iot to update the GUI's correctly & run scenarios.
+      Device.Send(msgString, actuatorId);		                        //also let the iot platform know that the operation was succesful: give it some feedback. This also allows the iot to update the GUI's correctly & run scenarios.
     }
     else if (msgString == "true") {
       digitalWrite(ledPin, HIGH);
-      Device.Send(msgString, actuatorName);
+      Device.Send(msgString, actuatorId);
     }
   }
 }
