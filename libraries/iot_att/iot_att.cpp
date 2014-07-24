@@ -66,16 +66,6 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 //create or update the specified asset.
 void ATTDevice::AddAsset(String id, String name, String description, bool isActuator, String type)
 {
-    // form a JSON-formatted string:
-    String jsonString = "{\"name\":\"" + name + "\",\"description\":\"" + description + "\",\"is\":\"";
-	if(isActuator) 
-		jsonString += "actuator";
-	else 
-		jsonString += "sensor";
-    jsonString += "\",\"profile\": { \"type\":\"" + type + "\" }, \"deviceId\":\"" + _deviceId + "\" }";
-    
-    Serial.println(jsonString);  									//show it on the screen
-
     // Make a HTTP request:
     _client.println("PUT /api/asset/" + _deviceId + id + " HTTP/1.1");
     _client.print(F("Host: "));
@@ -83,10 +73,32 @@ void ATTDevice::AddAsset(String id, String name, String description, bool isActu
     _client.println(F("Content-Type: application/json"));
     _client.print(F("Auth-ClientKey: "));_client.println(_clientKey);
     _client.print(F("Auth-ClientId: "));_client.println(_clientId); 
+	
 	_client.print("Content-Length: ");
-	_client.println(jsonString.length());
+	int length = name.length() + description.length() + type.length() + _deviceId.length() + 77;
+	if(isActuator) 
+		length += 8;
+	else 
+		length += 6;
+	_client.println(length);
+	
     _client.println();
-    _client.println(jsonString);
+    
+	_client.print("{\"name\":\""); 
+	_client.print(name);
+	_client.print("\",\"description\":\"");
+	_client.print(description);
+	_client.print("\",\"is\":\"");
+	if(isActuator) 
+		_client.print("actuator");
+	else 
+		_client.print("sensor");
+    _client.print("\",\"profile\": { \"type\":\"");
+	_client.print(type);
+	_client.print("\" }, \"deviceId\":\"");
+	_client.print(_deviceId);
+	_client.print("\" }");
+	_client.println();
     _client.println();
  
     delay(ETHERNETDELAY);
