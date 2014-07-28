@@ -67,37 +67,40 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 void ATTDevice::AddAsset(String id, String name, String description, bool isActuator, String type)
 {
     // Make a HTTP request:
-    _client.println("PUT /api/asset/" + _deviceId + id + " HTTP/1.1");
+	{																					//make every mem op local, so it is unloaded asap
+		_client.println("PUT /api/asset/" + _deviceId + id + " HTTP/1.1");
+	}
     _client.print(F("Host: "));
     _client.println(_serverName);
     _client.println(F("Content-Type: application/json"));
     _client.print(F("Auth-ClientKey: "));_client.println(_clientKey);
     _client.print(F("Auth-ClientId: "));_client.println(_clientId); 
 	
-	_client.print("Content-Length: ");
-	int length = name.length() + description.length() + type.length() + _deviceId.length() + 77;
-	if(isActuator) 
-		length += 8;
-	else 
-		length += 6;
-	_client.println(length);
-	
+	_client.print(F("Content-Length: "));
+	{																					//make every mem op local, so it is unloaded asap
+		int length = name.length() + description.length() + type.length() + _deviceId.length() + 77;
+		if(isActuator) 
+			length += 8;
+		else 
+			length += 6;
+		_client.println(length);
+	}
     _client.println();
     
-	_client.print("{\"name\":\""); 
+	_client.print(F("{\"name\":\"")); 
 	_client.print(name);
-	_client.print("\",\"description\":\"");
+	_client.print(F("\",\"description\":\""));
 	_client.print(description);
-	_client.print("\",\"is\":\"");
+	_client.print(F("\",\"is\":\""));
 	if(isActuator) 
-		_client.print("actuator");
+		_client.print(F("actuator"));
 	else 
-		_client.print("sensor");
-    _client.print("\",\"profile\": { \"type\":\"");
+		_client.print(F("sensor"));
+    _client.print(F("\",\"profile\": { \"type\":\""));
 	_client.print(type);
-	_client.print("\" }, \"deviceId\":\"");
+	_client.print(F("\" }, \"deviceId\":\""));
 	_client.print(_deviceId);
-	_client.print("\" }");
+	_client.print(F("\" }"));
 	_client.println();
     _client.println();
  
@@ -157,23 +160,32 @@ void ATTDevice::Send(String value, String sensorName)
 	}
 	unsigned long timeNow = (unsigned long)now();
 
-	String pubString = String(timeNow) + "|" + value;
-	int length = pubString.length() + 1;
-	char message_buff[length];
-	pubString.toCharArray(message_buff, length);
+	char* message_buff;
+	{																					//put in a sub block so 'pubstring' can be freed asap.
+		String pubString = String(timeNow);
+		int length = pubString.length() + value.length() + 2;
+		message_buff = new char[length];
+		sprintf(message_buff, "%s|%s", pubString.c_str(), value.c_str());
+		message_buff[length-1] = 0;
+	}
 	
 	#ifdef DEBUG																					//don't need to write all of this if not debugging.
 	Serial.print(F("time = ")); Serial.println(timeNow);
 	Serial.print(F("Publish to ")); Serial.print(sensorName); Serial.print(" : "); 
 	#endif
-	Serial.println(pubString);																	//this value is still useful and generated anyway, so no extra cost.
+	Serial.println(message_buff);																	//this value is still useful and generated anyway, so no extra cost.
 	
-	String Mqttstring = "f/" + _clientId + "/a/" + _deviceId + sensorName;
-	length = Mqttstring.length() + 1;
-	char Mqttstring_buff[length];
-	Mqttstring.toCharArray(Mqttstring_buff, length);      
+	char* Mqttstring_buff;
+	{
+		int length = _clientId.length() + _deviceId.length() + sensorName.length() + 6;
+		Mqttstring_buff = new char[length];
+		sprintf(Mqttstring_buff, "f/%s/a/%s%s", _clientId.c_str(), _deviceId.c_str(), sensorName.c_str());      
+		Mqttstring_buff[length-1] = 0;
+	}
 	_mqttclient->publish(Mqttstring_buff, message_buff);
 	delay(100);													//give some time to the ethernet shield so it can process everything.       
+	delete(message_buff);
+	delete(Mqttstring_buff);
 }
 
 

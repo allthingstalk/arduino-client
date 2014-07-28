@@ -82,29 +82,39 @@ void loop()
 
 // Callback function: handles messages that were sent from the iot platform to this device.
 void callback(char* topic, byte* payload, unsigned int length) 
-{  
-  char message_buff[length + 1];						//need to copy over the payload so that we can add a /0 terminator, this can then be wrapped inside a string for easy manipulation.
-  int i = 0;
-  for(; i < length; i++) 							//create character buffer with ending null terminator (string)
-    message_buff[i] = payload[i];
-  message_buff[i] = '\0';							//make certain that it ends with a null			
-	  
-  String msgString = String(message_buff);
-  msgString.toLowerCase();							//to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent)
-  String topicStr = topic;							//we convert the topic to a string so we can easily work with it (use 'endsWith')
-	
-  Serial.println("Payload: " + msgString);			                //show some debugging.
-  Serial.println("topic: " + topicStr);
-	
-  if (topicStr.endsWith(actuatorId)) 				                //warning: the topic will always be lowercase. This allows us to work with multiple actuators: the name of the actuator to use is at the end of the topic.
-  {
-    if (msgString == "false") {
-      digitalWrite(ledPin, LOW);					        //change the led	
-      Device.Send(msgString, actuatorId);		                        //also let the iot platform know that the operation was succesful: give it some feedback. This also allows the iot to update the GUI's correctly & run scenarios.
-    }
-    else if (msgString == "true") {
-      digitalWrite(ledPin, HIGH);
-      Device.Send(msgString, actuatorId);
-    }
+{ 
+  String msgString; 
+  {	                                                    //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
+	char message_buff[length + 1];						//need to copy over the payload so that we can add a /0 terminator, this can then be wrapped inside a string for easy manipulation.
+	int i = 0;
+	for(; i < length; i++) 							//create character buffer with ending null terminator (string)
+	  message_buff[i] = payload[i];
+	message_buff[i] = '\0';							//make certain that it ends with a null			
+		  
+	msgString = String(message_buff);
+	msgString.toLowerCase();							//to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent)
   }
+  String* idOut = NULL;
+  {	                                                    //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
+	String topicStr = topic;							//we convert the topic to a string so we can easily work with it (use 'endsWith')
+	
+	Serial.print("Payload: ");			                //show some debugging.
+	Serial.println(msgString);
+	Serial.print("topic: ");
+	Serial.println(topicStr);
+	
+	if (topicStr.endsWith(actuatorId)) 				                //warning: the topic will always be lowercase. This allows us to work with multiple actuators: the name of the actuator to use is at the end of the topic.
+	{
+	  if (msgString == "false") {
+		digitalWrite(ledPin, LOW);					        //change the led	
+		idOut = &actuatorId;		                        
+	  }
+	  else if (msgString == "true") {
+		digitalWrite(ledPin, HIGH);
+		idOut = &actuatorId;
+	  }
+	}
+  }
+  if(idOut != NULL)                //also let the iot platform know that the operation was succesful: give it some feedback. This also allows the iot to update the GUI's correctly & run scenarios.
+    Device.Send(msgString, *idOut);    
 }
