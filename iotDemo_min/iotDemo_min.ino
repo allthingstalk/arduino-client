@@ -15,7 +15,7 @@
     - Potentiometer to A0
     - Led light to D8
   2. Add 'iot_att_min' library to your Arduino Environment. [Try this guide](http://arduino.cc/en/Guide/Libraries)
-  3. fill in the missing strings (deviceId, clientId, mac) and optionally change/add the sensor & actuator ids
+  3. fill in the missing strings (deviceId, clientId, mac) and change/add the sensor & actuator ids
      For extra actuators, make certain to extend the callback code at the end of the sketch.
   4. Upload the sketch
 
