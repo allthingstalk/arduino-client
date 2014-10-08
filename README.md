@@ -7,7 +7,7 @@ There are 3 different flavours of the IOT library in order to perform the best b
 ### flavours
   1. Minimal: uses the least amount of memory, but it requires you to create devices and assets manually from the IOT platform.
   2. regular: requires more memory then the minimal version, but generates the assets automatically from the script. The device needs to be created manually in the IOT platform.
-  3. gateway: requires most memory. Functions as a gateway for other devices that are wirelessly connected through xbee. Devices & assets are automatically created whenever a new xbee connects to the controller.
+  3. gateway: requires most memory. Can function as a gateway for other devices that are wirelessly connected through xbee. The included template scketch shows how evices & assets can automatically be created whenever a new xbee connects to the controller.
 
 ### Installation
   1. Download the source code
