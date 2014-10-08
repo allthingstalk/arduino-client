@@ -67,9 +67,7 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 void ATTDevice::AddAsset(String id, String name, String description, bool isActuator, String type)
 {
     // Make a HTTP request:
-	{																					//make every mem op local, so it is unloaded asap
-		_client.println("PUT /api/asset/" + _deviceId + id + " HTTP/1.1");
-	}
+	_client.println("PUT /api/asset/" + _deviceId + id + " HTTP/1.1");
     _client.print(F("Host: "));
     _client.println(_serverName);
     _client.println(F("Content-Type: application/json"));
@@ -125,9 +123,10 @@ void ATTDevice::Subscribe(PubSubClient& mqttclient)
 void ATTDevice::MqttConnect()
 {
 	char mqttId[23]; // Or something long enough to hold the longest file name you will ever use.
-	int length = sizeof(_deviceId) > 22 ? 22 : sizeof(_deviceId);
-    _deviceId.toCharArray(mqttId, length);
-	mqttId[22] = 0;
+	int length = _clientId.length();
+	length = length > 22 ? 22 : length;
+    _clientId.toCharArray(mqttId, length);
+	mqttId[length] = 0;
 	Serial.println(mqttId);
 	while (!_mqttclient->connect(mqttId)) 
 	{
