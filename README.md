@@ -12,7 +12,8 @@ There are 3 different flavours of the IOT library in order to perform the best b
 ### Installation
   1. Download the source code
   2. copy the directories in the 'library' directory to your arduino library directory.
-  3. Use the 'demo' templates as a starting point.
+  3. copy the directories in the 'dependencies' directory to your arduino library directory. (These are external arduino libraries that are either used by the IOT libraries or on of the demo templates).
+  4. Use the 'demo' templates as a starting point.
   
 ### Instructions
 
