@@ -28,7 +28,7 @@ class ATTDevice
 		returns: true when subscribe was succesfulll, otherwise false.*/
 		bool Connect(byte mac[], char httpServer[]);
 		
-		//create or update the specified sensor. (call after connecting)
+		//create or update the specified asset. (call after connecting)
 		//note: after this call, the name will be in lower case, so that it can be used to compare with the topic of incomming messages.
 		void AddAsset(String id, String name, String description, bool isActuator, String type);
 

@@ -22,7 +22,7 @@ class ATTDevice
 		//create the object
 		ATTDevice(String deviceId, String clientId);
 			
-		/*Stop http processing & make certain that we can receive data from the mqtt server. */
+		/*make certain that we can receive data from the mqtt server. */
 		void Subscribe(PubSubClient& mqttclient);
 		
 		//send a data value to the cloud server for the sensor with the specified name.

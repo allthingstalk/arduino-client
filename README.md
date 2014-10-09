@@ -33,3 +33,5 @@ For all flavours, the basic instructions are always the same.  It is best to sta
 	- regular: replace deviceId, clientId, clientKey, mac. Optionally change/add the sensor & actuator names, ids, descriptions, types. For extra actuators, make certain to extend the callback code at the end of the sketch. The id's for the actuators & sensors that you have to specify here, should be unique within your sketch. For instance: 1, 2, 3,...  The mac address can be found on your arduino board. DeviceId, clientId & clientKey can be found on the IOT platform. 
 	- gateway: replace the clientId, clientKey & mac. The mac address can be found on your arduino board. ClientId & clientKey are available on the IOT platform.
   4. Upload the sketch
+  
+Check the wiki pages for API documentation.
