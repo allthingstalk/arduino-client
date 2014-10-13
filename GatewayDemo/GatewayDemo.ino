@@ -27,7 +27,7 @@ char clientKey[] = "Your client key comes here";
 
 ATTGateway Gateway(clientId, clientKey);                        //create the object that provides the connection to the cloud to manager the device.
 char httpServer[] = "beta.smartliving.io";                      // HTTP API Server host
-byte mqttServer[] = { 188, 64, 53, 92 };                        // MQTT(ATT1) Server IP Address
+char* mqttServer = "broker.smartliving.io";                     // MQTT(ATT1) Server 
 void callback(char* topic, byte* payload, unsigned int length);
 EthernetClient ethClient;
 PubSubClient pubSub(mqttServer, 1883, callback, ethClient);

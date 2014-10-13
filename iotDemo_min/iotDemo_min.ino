@@ -31,7 +31,7 @@ char clientId[] = ""; // Your client id comes here";
 
 ATTDevice Device(deviceId, clientId);            //create the object that provides the connection to the cloud to manager the device.
 
-byte mqttServer[] = { 188, 64, 53, 92 };                   
+char* mqttServer = "broker.smartliving.io";                                 
 
 byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E }; 	    // Adapt to your Arduino MAC Address  
 
