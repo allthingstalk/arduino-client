@@ -25,8 +25,12 @@ ATTDevice::ATTDevice(String deviceId, String clientId)
 }
 
 //connect with the http server and broker
-void ATTDevice::Subscribe(PubSubClient& mqttclient)
+void ATTDevice::Subscribe(byte[] mac, PubSubClient& mqttclient)
 {
+	if (Ethernet.begin(mac) == 0)                         // Initialize the Ethernet connection: for pub-sub client
+       Serial.println(F("DHCP failed,end"));
+	delay(1000);							                // give the Ethernet shield a second to initialize:
+  
 	_mqttclient = &mqttclient;	
 	MqttConnect();
 }

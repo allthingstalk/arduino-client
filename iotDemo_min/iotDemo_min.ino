@@ -52,11 +52,7 @@ void setup()
   pinMode(ledPin, OUTPUT);                              // initialize the digital pin as an output.         
   Serial.begin(9600);                                   // init serial link for debugging
   
-  if (Ethernet.begin(mac) == 0)                         // Initialize the Ethernet connection: for pub-sub client
-    Serial.println(F("DHCP failed,end"));
-  delay(1000);							                // give the Ethernet shield a second to initialize:
-  
-  Device.Subscribe(pubSub);						        // make certain that we can receive message from the iot platform (activate mqtt)
+  Device.Subscribe(mac, pubSub);						        // make certain that we can receive message from the iot platform (activate mqtt)
   Serial.println("init done");
 }
 

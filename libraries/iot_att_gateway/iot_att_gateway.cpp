@@ -1,4 +1,7 @@
 /*
+
+Not yet supported
+
 	iot_att_gateway.cpp - SmartLiving.io Arduino library 
 	provides a way to create devices & assets + send & receives asset values to/from the cloud.
 	
@@ -140,8 +143,9 @@ bool ATTGateway::CheckHTTPResult(char a, char b, char c)
 void ATTGateway::AddAsset(String deviceId, String id, String name, String description, bool isActuator, String type)
 {
     // Make a HTTP request:
-	_client.print("PUT /api/asset/xbee_");
+	_client.print(F("PUT /api/asset/xbee_"));
 	_client.print(deviceId);
+	_client.print(F("_"));
 	_client.print(id);
 	_client.println(" HTTP/1.1");
     
@@ -245,9 +249,9 @@ void ATTGateway::Send(String deviceId, String sensorId, String value)
 	
 	char* Mqttstring_buff;
 	{
-		int length = _clientId.length() + deviceId.length() + sensorId.length() + 11;
+		int length = _clientId.length() + deviceId.length() + sensorId.length() + 12;
 		Mqttstring_buff = new char[length];
-		sprintf(Mqttstring_buff, "f/%s/a/xbee_%s%s", _clientId.c_str(), deviceId.c_str(), sensorId.c_str());      
+		sprintf(Mqttstring_buff, "f/%s/a/xbee_%s_%s", _clientId.c_str(), deviceId.c_str(), sensorId.c_str());      
 		Mqttstring_buff[length-1] = 0;
 	}
 	_mqttclient->publish(Mqttstring_buff, message_buff);
@@ -272,18 +276,4 @@ void ATTGateway::MqttSubscribe(String deviceId)
     Serial.println(F("MQTT Client subscribed"));
 	#endif
 }
-
-//void ATTGateway::GetHTTPResult()
-//{
-	// If there's incoming data from the net connection, send it out the serial port
-	// This is for debugging purposes only
-//	if(_client.available()){
-		//_client.flush();
-//		while (_client.available()) {
-//			char c = _client.read();
-//			Serial.print(c);
-//		}
-//		Serial.println();
-//	}
-//}
 

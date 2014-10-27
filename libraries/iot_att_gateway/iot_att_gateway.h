@@ -1,4 +1,7 @@
 /*
+
+Not yet supported
+
 	iot_att_gateway.h - SmartLiving.io Arduino library 
 	provides a way to create devices & assets + send & receives asset values to/from the cloud.
 	

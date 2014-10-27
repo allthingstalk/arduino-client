@@ -3,7 +3,7 @@
 
 #include <iot_att.h>
 #include <SPI.h>                //required to have support for signed/unsigned long type.
-#include <Time.h>				//so we can send values at a fixed rate.
+//#include <Time.h>				//so we can send values at a fixed rate.
 
 /*
   AllThingsTalk Makers Arduino Example 

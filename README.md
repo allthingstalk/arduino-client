@@ -4,6 +4,8 @@ gif_arduino
 libraries for arduinos that provides access to the ATT IOT platform.
 There are 3 different flavours of the IOT library in order to perform the best balance between memory usage and automation.
 
+Check the wiki pages for [how-to's and API documentation](https://github.com/allthingstalk/gif_arduino/wiki).
+
 ### flavours
   1. Minimal: uses the least amount of memory, but it requires you to create devices and assets manually from the IOT platform.
   2. regular: requires more memory then the minimal version, but generates the assets automatically from the script. The device needs to be created manually in the IOT platform.
@@ -34,4 +36,3 @@ For all flavours, the basic instructions are always the same.  It is best to sta
 	- gateway: replace the clientId, clientKey & mac. The mac address can be found on your arduino board. ClientId & clientKey are available on the IOT platform.
   4. Upload the sketch
   
-Check the wiki pages for API documentation.

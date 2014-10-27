@@ -22,8 +22,8 @@ class ATTDevice
 		//create the object
 		ATTDevice(String deviceId, String clientId);
 			
-		/*make certain that we can receive data from the mqtt server. */
-		void Subscribe(PubSubClient& mqttclient);
+		/*set up ethernet & make certain that we can receive data from the mqtt server. */
+		void Subscribe(byte[] mac, PubSubClient& mqttclient);
 		
 		//send a data value to the cloud server for the sensor with the specified name.
 		void Send(String value, String sensorName);
