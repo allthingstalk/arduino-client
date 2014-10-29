@@ -37,9 +37,7 @@ char* mqttServer = "broker.smartliving.io";
 
 byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E }; 	    // Adapt to your Arduino MAC Address  
 
-String sensorName = "Sensor_name";                           // You have to supply a name for each sensor/actuator that you use.
 String sensorId = "1";										// uniquely identify this asset. Don't use spaces in the id.
-String actuatorName = "actuator_name";                       
 String actuatorId = "2";									// uniquely identify this asset. Don't use spaces in the id.
 
 int ValueIn = 0;                                            // Analog 0 is the input pin
@@ -57,8 +55,8 @@ void setup()
   
   if(Device.Connect(mac, httpServer))					          // connect the device with the IOT platform.
   {
-    Device.AddAsset(sensorId, sensorName, "your sensor description", false, "int");   
-    Device.AddAsset(actuatorId, actuatorName, "your actuator description", true, "bool");
+    Device.AddAsset(sensorId, F("Sensor_name"), F("your sensor description"), false, F("int"));   
+    Device.AddAsset(actuatorId, F("actuator_name"), F("your actuator description"), true, F("bool"));
     Device.Subscribe(pubSub);						        // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 
@@ -85,10 +83,8 @@ void callback(char* topic, byte* payload, unsigned int length)
   String msgString; 
   {	                                                    //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
 	char message_buff[length + 1];						//need to copy over the payload so that we can add a /0 terminator, this can then be wrapped inside a string for easy manipulation.
-	int i = 0;
-	for(; i < length; i++) 							//create character buffer with ending null terminator (string)
-	  message_buff[i] = payload[i];
-	message_buff[i] = '\0';							//make certain that it ends with a null			
+	strncp(message_buff, (char*)payload, length);		//copy over the data
+	message_buff[i] = '\0';							    //make certain that it ends with a null			
 		  
 	msgString = String(message_buff);
 	msgString.toLowerCase();							//to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent)
