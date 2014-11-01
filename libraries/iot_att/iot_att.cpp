@@ -10,7 +10,6 @@
 
 
 #include "iot_att.h"
-#include <Time.h>
 
 #define RETRYDELAY 5000					//the nr of milliseconds that we pause before retrying to create the connection
 #define ETHERNETDELAY 1000		//the nr of milliseconds that we pause to give the ethernet board time to start
@@ -157,19 +156,16 @@ void ATTDevice::Send(String value, String sensorName)
 		Serial.println(F("Lost broker connection,restarting")); 
 		MqttConnect();
 	}
-	unsigned long timeNow = (unsigned long)now();
 
 	char* message_buff;
 	{																					//put in a sub block so 'pubstring' can be freed asap.
-		String pubString = String(timeNow);
-		int length = pubString.length() + value.length() + 2;
+		int length = value.length() + 3;
 		message_buff = new char[length];
-		sprintf(message_buff, "%s|%s", pubString.c_str(), value.c_str());
+		sprintf(message_buff, "0|%s", value.c_str());
 		message_buff[length-1] = 0;
 	}
 	
 	#ifdef DEBUG																					//don't need to write all of this if not debugging.
-	Serial.print(F("time = ")); Serial.println(timeNow);
 	Serial.print(F("Publish to ")); Serial.print(sensorName); Serial.print(" : "); 
 	#endif
 	Serial.println(message_buff);																	//this value is still useful and generated anyway, so no extra cost.
