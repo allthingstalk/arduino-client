@@ -60,7 +60,7 @@ void setup()
 		Device.Subscribe(pubSub);                      // make certain that we can receive message from the iot platform (activate mqtt)
 	}
 	else
-		while(true);                                   // can't set up the device on the cloud, can't continue, so put the app in an ethernal loop so it doesn't do anything else anymore.
+		while(true);                                   // can't set up the device on the cloud, can't continue, so put the app in an eternal loop so it doesn't do anything else anymore.
 }
 
 unsigned long time;                                // only send every x amount of time.
