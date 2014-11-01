@@ -101,7 +101,7 @@ void callback(char* topic, byte* payload, unsigned int length)
 		if (topicStr.endsWith(actuatorId))              // warning: the topic will always be lowercase. This allows us to work with multiple actuators: the name of the actuator to use is at the end of the topic.
 		{
 			if (msgString == "false") {
-				digitalWrite(ledPin, LOW);					        // change the led
+				digitalWrite(ledPin, LOW);                  // change the led
 				idOut = &actuatorId;
 			}
 			else if (msgString == "true") {
