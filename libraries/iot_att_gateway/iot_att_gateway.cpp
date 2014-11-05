@@ -140,7 +140,7 @@ bool ATTGateway::CheckHTTPResult(char a, char b, char c)
 }
 
 //create or update the specified asset.
-void ATTGateway::AddAsset(String deviceId, String id, String name, String description, bool isActuator, String type)
+void ATTGateway::AddAsset(String deviceId, char id, String name, String description, bool isActuator, String type)
 {
     // Make a HTTP request:
 	_client.print(F("PUT /api/asset/xbee_"));
@@ -226,7 +226,7 @@ void ATTGateway::Process()
 }
 
 //send a data value to the cloud server for the sensor with the specified id.
-void ATTGateway::Send(String deviceId, String sensorId, String value)
+void ATTGateway::Send(String deviceId, char sensorId, String value)
 {
 	if(_mqttclient->connected() == false)
 	{
@@ -249,9 +249,9 @@ void ATTGateway::Send(String deviceId, String sensorId, String value)
 	
 	char* Mqttstring_buff;
 	{
-		int length = _clientId.length() + deviceId.length() + sensorId.length() + 12;
+		int length = _clientId.length() + deviceId.length() + 30;
 		Mqttstring_buff = new char[length];
-		sprintf(Mqttstring_buff, "f/%s/a/xbee_%s_%s", _clientId.c_str(), deviceId.c_str(), sensorId.c_str());      
+		sprintf(Mqttstring_buff, "client/%s/out/asset/xbee_%s_%c/state", _clientId.c_str(), deviceId.c_str(), sensorId);      
 		Mqttstring_buff[length-1] = 0;
 	}
 	_mqttclient->publish(Mqttstring_buff, message_buff);
@@ -264,12 +264,9 @@ void ATTGateway::Send(String deviceId, String sensorId, String value)
 //subscribe to the mqtt topic so we can receive data from the server.
 void ATTGateway::MqttSubscribe(String deviceId)
 {
-	String MqttString = "m/" + _clientId + "/d/xbee_" + deviceId + "/#";
+	String MqttString = "client/" + _clientId + "/in/device/xbee_" + deviceId + "/+/command";  //arduinos are only intersted in actuator command, no management commands
 	char Mqttstring_buff[MqttString.length()+1];
     MqttString.toCharArray(Mqttstring_buff, MqttString.length()+1);
-    _mqttclient->subscribe(Mqttstring_buff);
-	
-	Mqttstring_buff[0] = 's';				//change from m/ClientId/DeviceId/#  to s/ClientId/DeviceId/# 
     _mqttclient->subscribe(Mqttstring_buff);
 
 	#ifdef DEBUG

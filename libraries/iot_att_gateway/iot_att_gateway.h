@@ -39,13 +39,13 @@ class ATTGateway
 		
 		//create or update the specified sensor. (call after connecting)
 		//note: after this call, the name will be in lower case, so that it can be used to compare with the topic of incomming messages.
-		void AddAsset(String deviceId, String id, String name, String description, bool isActuator, String type);
+		void AddAsset(String deviceId, char id, String name, String description, bool isActuator, String type);
 
 		/*Stop http processing & make certain that we can receive data from the mqtt server. */
 		void Subscribe(PubSubClient& mqttclient);
 		
 		//send a data value to the cloud server for the sensor with the specified name.
-		void Send(String deviceId, String sensorName, String value);
+		void Send(String deviceId, char sensorId, String value);
 	
 		//check for any new mqtt messages.
 		void Process();

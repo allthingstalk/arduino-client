@@ -1,8 +1,9 @@
 #include <Ethernet.h>			//for loading components required by the iot device object.
 #include <PubSubClient.h>
 
-#include <iot_att_min.h>
+#include <iot_att.h>
 #include <SPI.h>                //required to have support for signed/unsigned long type.
+//#include <Time.h>				//so we can send values at a fixed rate.
 
 /*
   AllThingsTalk Makers Arduino Example 
@@ -14,8 +15,8 @@
     - Grove kit shield
     - Potentiometer to A0
     - Led light to D8
-  2. Add 'iot_att_min' library to your Arduino Environment. [Try this guide](http://arduino.cc/en/Guide/Libraries)
-  3. fill in the missing strings (deviceId, clientId, mac) and change/add the sensor & actuator ids
+  2. Add 'iot_att' library to your Arduino Environment. [Try this guide](http://arduino.cc/en/Guide/Libraries)
+  3. fill in the missing strings (deviceId, clientId, clientKey, mac) and optionally change/add the sensor & actuator names, ids, descriptions, types
      For extra actuators, make certain to extend the callback code at the end of the sketch.
   4. Upload the sketch
 
@@ -28,18 +29,18 @@
 
 char deviceId[] = ""; // Your device id comes here
 char clientId[] = ""; // Your client id comes here";
+char clientKey[] = "";// Your client key comes here";
 
-ATTDevice Device(deviceId, clientId);            //create the object that provides the connection to the cloud to manager the device.
-
-char* mqttServer = "broker.smartliving.io";                                 
+ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
+char httpServer[] = "beta.smartliving.io";                  // HTTP API Server host
+char* mqttServer = "broker.smartliving.io";                   
 
 byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E }; 	    // Adapt to your Arduino MAC Address  
 
-String sensorId = "1";										// uniquely identify this asset. Don't use spaces in the id.
-String actuatorId = "2";									// uniquely identify this asset. Don't use spaces in the id.
+char sensorId = '1';										// uniquely identify this asset. Don't use spaces in the id.
+char actuatorId = '2';									// uniquely identify this asset. Don't use spaces in the id.
 
 int ValueIn = 0;                                            // Analog 0 is the input pin
-unsigned int prevVal = 0;                                   //so we only send the value if it was different from prev value.	
 int ledPin = 8;                                             // Pin 8 is the LED output pin 
 
 //required for the device
@@ -49,20 +50,28 @@ PubSubClient pubSub(mqttServer, 1883, callback, ethClient);
 
 void setup()
 {
-  pinMode(ledPin, OUTPUT);                              // initialize the digital pin as an output.         
-  Serial.begin(9600);                                   // init serial link for debugging
+  pinMode(ledPin, OUTPUT);					                  // initialize the digital pin as an output.         
+  Serial.begin(9600);							          // init serial link for debugging
   
-  Device.Subscribe(mac, pubSub);						        // make certain that we can receive message from the iot platform (activate mqtt)
-  Serial.println("init done");
+  if(Device.Connect(mac, httpServer))					          // connect the device with the IOT platform.
+  {
+    Device.AddAsset(sensorId, F("Sensor_name"), F("your sensor description"), false, F("int"));   
+    Device.AddAsset(actuatorId, F("actuator_name"), F("your actuator description"), true, F("bool"));
+    Device.Subscribe(pubSub);						        // make certain that we can receive message from the iot platform (activate mqtt)
+  }
+  else 
+    while(true);                                                                //can't set up the device on the cloud, can't continue, so put the app in an ethernal loop so it doesn't do anything else anymore.								
 }
 
+unsigned long time;							        //only send every x amount of time.
 void loop()
 {
-  unsigned int lightRead = analogRead(ValueIn);			        // read from light sensor (photocell)
-  if(lightRead != prevVal)
+  unsigned long curTime = millis();
+  if (curTime > (time + 5000)) 							// publish light reading every 5 seconds to sensor 1
   {
+    unsigned int lightRead = analogRead(ValueIn);			        // read from light sensor (photocell)
     Device.Send(String(lightRead), sensorId);
-	prevVal = lightRead;
+    time = curTime;
   }
   Device.Process(); 
 }
@@ -74,28 +83,26 @@ void callback(char* topic, byte* payload, unsigned int length)
   String msgString; 
   {	                                                    //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
 	char message_buff[length + 1];						//need to copy over the payload so that we can add a /0 terminator, this can then be wrapped inside a string for easy manipulation.
-	int i = 0;
-	for(; i < length; i++) 							//create character buffer with ending null terminator (string)
-	  message_buff[i] = payload[i];
-	message_buff[i] = '\0';							//make certain that it ends with a null			
+	strncpy(message_buff, (char*)payload, length);		//copy over the data
+	message_buff[length + 1] = '\0';							    //make certain that it ends with a null			
 		  
 	msgString = String(message_buff);
 	msgString.toLowerCase();							//to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent)
   }
-  String* idOut = NULL;
+  char* idOut = NULL;
   {	                                                    //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
-	String topicStr = topic;							//we convert the topic to a string so we can easily work with it (use 'endsWith')
+	int topicLength = strlen(topic);
 	
 	Serial.print("Payload: ");			                //show some debugging.
 	Serial.println(msgString);
 	Serial.print("topic: ");
-	Serial.println(topicStr);
+	Serial.println(topic);
 	
-	if (topicStr.endsWith(actuatorId)) 				                //warning: the topic will always be lowercase. This allows us to work with multiple actuators: the name of the actuator to use is at the end of the topic.
+	if (topic[topicLength - 9] == actuatorId))        //warning: the topic will always be lowercase. The id of the actuator to use is near the end of the topic. We can only get actuator commands, so no extra check is required.
 	{
 	  if (msgString == "false") {
-		digitalWrite(ledPin, LOW);					        //change the led	
-		idOut = &actuatorId;		                        
+       digitalWrite(ledPin, LOW);					        //change the led	
+       idOut = &actuatorId;		                        
 	  }
 	  else if (msgString == "true") {
 		digitalWrite(ledPin, HIGH);

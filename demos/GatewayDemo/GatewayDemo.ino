@@ -33,11 +33,11 @@ EthernetClient ethClient;
 PubSubClient pubSub(mqttServer, 1883, callback, ethClient);
 
 String Sensor1 = "Moisture sensor";                       
-String Sensor1_Id = "1";
+char Sensor1_Id = '1';
 String Sensor2 = "Temp Sensor";                         
-String Sensor2_Id = "2";
+char Sensor2_Id = '2';
 String Sensor3 = "Light Sensor";
-String Sensor3_Id = "3";
+char Sensor3_Id = '3';
 
 
 // XBEE Stuff
@@ -153,18 +153,15 @@ void loop()
 // Callback function: handles messages that were sent from the ALLTHINGSTALK IoT platform to this device.
 void callback(char* topic, byte* payload, unsigned int length) 
 {  
-  char message_buff[length + 1];					        //need to copy over the payload so that we can add a /0 terminator, this can then be wrapped inside a string for easy manipulation.
-  int i = 0;
-  for(; i < length; i++) 							//create character buffer with ending null terminator (string)
-    message_buff[i] = payload[i];
-  message_buff[i] = '\0';							//make certain that it ends with a null			
+  char message_buff[length + 1];						//need to copy over the payload so that we can add a /0 terminator, this can then be wrapped inside a string for easy manipulation.
+	strncpy(message_buff, (char*)payload, length);		//copy over the data
+	message_buff[length + 1] = '\0';							    //make certain that it ends with a null			
 	  
   String msgString = String(message_buff);
   msgString.toLowerCase();							//to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent)
-  String topicStr = topic;							//we convert the topic to a string so we can easily work with it (use 'endsWith')
 	
   Serial.println("Payload: " + msgString);			                //show some debugging.
-  Serial.println("topic: " + topicStr);
+  Serial.println("topic: " + topic);
 	
 
 }

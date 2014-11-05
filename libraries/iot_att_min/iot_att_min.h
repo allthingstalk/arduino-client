@@ -25,8 +25,8 @@ class ATTDevice
 		/*set up ethernet & make certain that we can receive data from the mqtt server. */
 		void Subscribe(byte[] mac, PubSubClient& mqttclient);
 		
-		//send a data value to the cloud server for the sensor with the specified name.
-		void Send(String value, String sensorName);
+		//send a data value to the cloud server for the sensor with the specified id.
+		void Send(String value, char id);
 	
 		//check for any new mqtt messages.
 		void Process();

@@ -63,7 +63,7 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 }
 
 //create or update the specified asset.
-void ATTDevice::AddAsset(String id, String name, String description, bool isActuator, String type)
+void ATTDevice::AddAsset(char id, String name, String description, bool isActuator, String type)
 {
     // Make a HTTP request:
 	_client.println("PUT /api/asset/" + _deviceId + id + " HTTP/1.1");
@@ -149,7 +149,7 @@ void ATTDevice::Process()
 }
 
 //send a data value to the cloud server for the sensor with the specified id.
-void ATTDevice::Send(String value, String sensorName)
+void ATTDevice::Send(String value, char id)
 {
 	if(_mqttclient->connected() == false)
 	{
@@ -166,15 +166,15 @@ void ATTDevice::Send(String value, String sensorName)
 	}
 	
 	#ifdef DEBUG																					//don't need to write all of this if not debugging.
-	Serial.print(F("Publish to ")); Serial.print(sensorName); Serial.print(" : "); 
+	Serial.print(F("Publish to ")); Serial.print(id); Serial.print(" : "); 
 	#endif
 	Serial.println(message_buff);																	//this value is still useful and generated anyway, so no extra cost.
 	
 	char* Mqttstring_buff;
 	{
-		int length = _clientId.length() + _deviceId.length() + sensorName.length() + 6;
+		int length = _clientId.length() + _deviceId.length() + 26;
 		Mqttstring_buff = new char[length];
-		sprintf(Mqttstring_buff, "f/%s/a/%s%s", _clientId.c_str(), _deviceId.c_str(), sensorName.c_str());      
+		sprintf(Mqttstring_buff, "client/%s/out/asset/%s%c/state", _clientId.c_str(), _deviceId.c_str(), id);      
 		Mqttstring_buff[length-1] = 0;
 	}
 	_mqttclient->publish(Mqttstring_buff, message_buff);
@@ -187,12 +187,9 @@ void ATTDevice::Send(String value, String sensorName)
 //subscribe to the mqtt topic so we can receive data from the server.
 void ATTDevice::MqttSubscribe()
 {
-	String MqttString = "m/" + _clientId + "/d/" + _deviceId + "/#";
+	String MqttString = "client/" + _clientId + "/in/device/" + _deviceId + "/+/command";  //the arduino is only interested in the actuator commands, no management commands
 	char Mqttstring_buff[MqttString.length()+1];
     MqttString.toCharArray(Mqttstring_buff, MqttString.length()+1);
-    _mqttclient->subscribe(Mqttstring_buff);
-	
-	Mqttstring_buff[0] = 's';				//change from m/ClientId/DeviceId/#  to s/ClientId/DeviceId/# 
     _mqttclient->subscribe(Mqttstring_buff);
 
 	#ifdef DEBUG
