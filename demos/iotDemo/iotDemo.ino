@@ -98,7 +98,7 @@ void callback(char* topic, byte* payload, unsigned int length)
 	Serial.print("topic: ");
 	Serial.println(topic);
 	
-	if (topic[topicLength - 9] == actuatorId))        //warning: the topic will always be lowercase. The id of the actuator to use is near the end of the topic. We can only get actuator commands, so no extra check is required.
+	if (topic[topicLength - 9] == actuatorId)        //warning: the topic will always be lowercase. The id of the actuator to use is near the end of the topic. We can only get actuator commands, so no extra check is required.
 	{
 	  if (msgString == "false") {
        digitalWrite(ledPin, LOW);					        //change the led	

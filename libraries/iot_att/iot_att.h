@@ -30,7 +30,7 @@ class ATTDevice
 		
 		//create or update the specified asset. (call after connecting)
 		//note: after this call, the name will be in lower case, so that it can be used to compare with the topic of incomming messages.
-		void AddAsset(String id, String name, String description, bool isActuator, String type);
+		void AddAsset(char id, String name, String description, bool isActuator, String type);
 
 		/*Stop http processing & make certain that we can receive data from the mqtt server. */
 		void Subscribe(PubSubClient& mqttclient);

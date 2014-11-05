@@ -52,7 +52,7 @@ void setup()
   pinMode(ledPin, OUTPUT);                              // initialize the digital pin as an output.         
   Serial.begin(9600);                                   // init serial link for debugging
   
-  Device.Subscribe(mac, pubSub);						        // make certain that we can receive message from the iot platform (activate mqtt)
+  Device.Subscribe(mac, pubSub);		        // make certain that we can receive message from the iot platform (activate mqtt)
   Serial.println("init done");
 }
 
@@ -84,22 +84,22 @@ void callback(char* topic, byte* payload, unsigned int length)
   {	                                                    //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
     int topicLength = strlen(topic);
 	
-	Serial.print("Payload: ");			                //show some debugging.
-	Serial.println(msgString);
-	Serial.print("topic: ");
-	Serial.println(topic);
+    Serial.print("Payload: ");			                //show some debugging.
+    Serial.println(msgString);
+    Serial.print("topic: ");
+    Serial.println(topic);
 	
-	if (topic[topicLength - 9] == actuatorId))        //warning: the topic will always be lowercase. The id of the actuator to use is near the end of the topic. We can only get actuator commands, so no extra check is required.
-	{
-	  if (msgString == "false") {
+    if (topic[topicLength - 9] == actuatorId)        //warning: the topic will always be lowercase. The id of the actuator to use is near the end of the topic. We can only get actuator commands, so no extra check is required.
+    {
+      if (msgString == "false") {
         digitalWrite(ledPin, LOW);					        //change the led	
         idOut = &actuatorId;		                        
-	  }
-	  else if (msgString == "true") {
+      }
+      else if (msgString == "true") {
         digitalWrite(ledPin, HIGH);
         idOut = &actuatorId;
       }
-	}
+    }
   }
   if(idOut != NULL)                //also let the iot platform know that the operation was succesful: give it some feedback. This also allows the iot to update the GUI's correctly & run scenarios.
     Device.Send(msgString, *idOut);    
