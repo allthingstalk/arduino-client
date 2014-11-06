@@ -23,7 +23,7 @@ class ATTDevice
 		ATTDevice(String deviceId, String clientId);
 			
 		//set up ethernet & make certain that we can receive data from the mqtt server.
-		void Subscribe(byte* mac, PubSubClient &mqttclient);
+		void Subscribe(byte* mac, PubSubClient &mqttclient, char* brokerUserId, char* brokerPwd);
 		
 		//send a data value to the cloud server for the sensor with the specified id.
 		void Send(String value, char id);
@@ -33,6 +33,8 @@ class ATTDevice
 	private:	
 		String _deviceId;				//the device id provided by the user.
 		String _clientId;				//the client id provided by the user.	
+		char* _brokerId;				//the id used to connect to the broker.
+		char* _brokerPwd;				//the pwd used to connect to the broker.
 		PubSubClient* _mqttclient;		//provides mqtt support
 		
 		//subscribe to the mqtt topic so we can receive data from the server.

@@ -27,7 +27,9 @@
 */
 
 char deviceId[] = ""; // Your device id comes here
-char clientId[] = ""; // Your client id comes here";
+char clientId[] = ""; // Your client id comes here
+char BrokerKey[] = "";// Your broker id comes here
+char BrokerPwd[] = "";// Your broker password comes here
 
 ATTDevice Device(deviceId, clientId);            //create the object that provides the connection to the cloud to manager the device.
 
@@ -52,7 +54,7 @@ void setup()
   pinMode(ledPin, OUTPUT);                              // initialize the digital pin as an output.         
   Serial.begin(9600);                                   // init serial link for debugging
   
-  Device.Subscribe(mac, pubSub);		        // make certain that we can receive message from the iot platform (activate mqtt)
+  Device.Subscribe(mac, pubSub, BrokerKey, BrokerPwd);		        // make certain that we can receive message from the iot platform (activate mqtt)
   Serial.println("init done");
 }
 

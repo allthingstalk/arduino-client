@@ -33,7 +33,7 @@ class ATTDevice
 		void AddAsset(char id, String name, String description, bool isActuator, String type);
 
 		/*Stop http processing & make certain that we can receive data from the mqtt server. */
-		void Subscribe(PubSubClient& mqttclient);
+		void Subscribe(PubSubClient& mqttclient, char* brokerUserId, char* brokerPwd);
 		
 		//send a data value to the cloud server for the sensor with the specified id.
 		void Send(String value, char id);
@@ -45,6 +45,8 @@ class ATTDevice
 		String _deviceId;				//the device id provided by the user.
 		String _clientId;				//the client id provided by the user.	
 		String _clientKey;				//the client key provided by the user.
+		char* _brokerId;				//the id used to connect to the broker.
+		char* _brokerPwd;				//the pwd used to connect to the broker.
 		EthernetClient _client;			//raw http communication. Possible to save some memory here: pass the client as a param in connect, put the object local in the setup function.
 		PubSubClient* _mqttclient;		//provides mqtt support
 		
