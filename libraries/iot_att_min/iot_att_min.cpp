@@ -32,7 +32,7 @@ void ATTDevice::Subscribe(byte* mac, PubSubClient& mqttclient, char* brokerUserI
 	delay(1000);							                // give the Ethernet shield a second to initialize:
   
 	_brokerId = brokerUserId;
-	_brokerPwd = brokerPwd;
+	_clientKey = brokerPwd;
 	_mqttclient = &mqttclient;	
 	MqttConnect();
 }
@@ -45,7 +45,7 @@ void ATTDevice::MqttConnect()
 	length = length > 22 ? 22 : length;
     _clientId.toCharArray(mqttId, length);
 	mqttId[22] = 0;
-	while (!_mqttclient->connect(mqttId, _brokerId, _brokerPwd)) 
+	while (!_mqttclient->connect(mqttId, _brokerId, _clientKey)) 
 	{
 		#ifdef DEBUG
 		Serial.print(MQTTSERVTEXT);

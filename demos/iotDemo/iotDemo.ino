@@ -30,7 +30,6 @@ char deviceId[] = ""; // Your device id comes here
 char clientId[] = ""; // Your client id comes here
 char clientKey[] = "";// Your client key comes here
 char BrokerKey[] = "";// Your broker id comes here
-char BrokerPwd[] = "";// Your broker password comes here
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
 char httpServer[] = "beta.smartliving.io";                  // HTTP API Server host
@@ -58,7 +57,7 @@ void setup()
   {
     Device.AddAsset(sensorId, F("Sensor_name"), F("your sensor description"), false, F("int"));   
     Device.AddAsset(actuatorId, F("actuator_name"), F("your actuator description"), true, F("bool"));
-    Device.Subscribe(pubSub, BrokerKey, BrokerPwd);						        // make certain that we can receive message from the iot platform (activate mqtt)
+    Device.Subscribe(pubSub, BrokerKey);						        // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 
     while(true);                                                                //can't set up the device on the cloud, can't continue, so put the app in an ethernal loop so it doesn't do anything else anymore.								
