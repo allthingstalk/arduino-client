@@ -24,8 +24,6 @@ byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x4B }; 	    // Adapt to your Ardu
 //IOT stuff
 char clientId[] = "Your client id comes here"; 
 char clientKey[] = "Your client key comes here";
-char BrokerKey[] = "Your broker id comes here";
-char BrokerPwd[] = "Your broker password comes here";
 
 ATTGateway Gateway(clientId, clientKey);                        //create the object that provides the connection to the cloud to manager the device.
 char httpServer[] = "beta.smartliving.io";                      // HTTP API Server host
@@ -58,7 +56,7 @@ void setup()
   
   // start the Ethernet connection:
   if(Gateway.Connect(mac, httpServer))                           // connect the device with the IOT platform.
-    Gateway.Subscribe(pubSub, BrokerKey, BrokerPwd);                                   // make certain that we can receive message from the iot platform (activate mqtt)
+    Gateway.Subscribe(pubSub);                                   // make certain that we can receive message from the iot platform (activate mqtt)
   else 
     while(true);                                                 //can't set up the gateway on the cloud, can't continue, so put the app in an ethernal loop so it doesn't do anything else anymore.								
   

@@ -106,10 +106,9 @@ void ATTDevice::AddAsset(char id, String name, String description, bool isActuat
 }
 
 //connect with the http server and broker
-void ATTDevice::Subscribe(PubSubClient& mqttclient, char* brokerUserId)
+void ATTDevice::Subscribe(PubSubClient& mqttclient)
 {
 	_mqttclient = &mqttclient;	
-	_brokerId = brokerUserId;
 	_serverName = NULL;					//no longer need this reference.
 	#ifdef DEBUG
 	Serial.println(F("Stopping HTTP"));
@@ -127,8 +126,8 @@ void ATTDevice::MqttConnect()
 	length = length > 22 ? 22 : length;
     _clientId.toCharArray(mqttId, length);
 	mqttId[length] = 0;
-	Serial.println(mqttId);
-	while (!_mqttclient->connect(mqttId, _brokerId, (char*)_clientKey.c_str())) 
+	String brokerId = _clientId + ":" + _clientId;
+	while (!_mqttclient->connect(mqttId, (char*)brokerId.c_str(), (char*)_clientKey.c_str())) 
 	{
 		#ifdef DEBUG
 		Serial.print(MQTTSERVTEXT);

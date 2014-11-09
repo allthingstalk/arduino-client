@@ -42,7 +42,7 @@ class ATTGateway
 		void AddAsset(String deviceId, char id, String name, String description, bool isActuator, String type);
 
 		/*Stop http processing & make certain that we can receive data from the mqtt server. */
-		void Subscribe(PubSubClient& mqttclient, char* brokerUserId);
+		void Subscribe(PubSubClient& mqttclient);
 		
 		//send a data value to the cloud server for the sensor with the specified name.
 		void Send(String deviceId, char sensorId, String value);
@@ -53,7 +53,6 @@ class ATTGateway
 		char* _serverName;				//stores the name of the http server that we should use.
 		String _clientId;				//the client id provided by the user.	
 		String _clientKey;				//the client key provided by the user.
-		char* _brokerId;				//the id used to connect to the broker.
 		EthernetClient _client;			//raw http communication. Possible to save some memory here: pass the client as a param in connect, put the object local in the setup function.
 		PubSubClient* _mqttclient;		//provides mqtt support
 		

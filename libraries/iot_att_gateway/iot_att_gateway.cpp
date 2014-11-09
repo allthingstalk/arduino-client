@@ -191,10 +191,9 @@ void ATTGateway::AddAsset(String deviceId, char id, String name, String descript
 }
 
 //connect with the http server and broker
-void ATTGateway::Subscribe(PubSubClient& mqttclient, char* brokerUserId)
+void ATTGateway::Subscribe(PubSubClient& mqttclient)
 {
 	_mqttclient = &mqttclient;
-	_brokerId = brokerUserId;
 	MqttConnect();
 }
 
@@ -206,7 +205,8 @@ void ATTGateway::MqttConnect()
 	length = length > 22 ? 22 : length;
     _clientId.toCharArray(mqttId, length);
 	mqttId[length] = 0;
-	while (!_mqttclient->connect(mqttId, _brokerId, _clientKey.c_st())) 
+	String brokerId = _clientId + ":" + _clientId;
+	while (!_mqttclient->connect(mqttId, (char*)brokerId.c_str(), (char*)_clientKey.c_str())) 
 	{
 		#ifdef DEBUG
 		Serial.print(MQTTSERVTEXT);
