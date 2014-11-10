@@ -68,7 +68,7 @@ void loop()
   unsigned long curTime = millis();
   if (curTime > (time + 5000)) 							// publish light reading every 5 seconds to sensor 1
   {
-    unsigned int lightRead = analogRead(ValueIn);			        // read from light sensor (photocell)
+    unsigned int lightRead = analogRead(ValueIn);			        // read from potentio meter
     Device.Send(String(lightRead), sensorId);
     time = curTime;
   }
