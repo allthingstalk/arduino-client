@@ -31,7 +31,7 @@ char clientId[] = ""; // Your client id comes here
 char clientKey[] = "";// Your client key comes here
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "beta.smartliving.io";                  // HTTP API Server host
+char httpServer[] = "webapimanagement.cloudapp.net";                  // HTTP API Server host
 char* mqttServer = "broker.smartliving.io";                   
 
 byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E }; 	    // Adapt to your Arduino MAC Address  

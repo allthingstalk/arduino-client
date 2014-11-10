@@ -126,7 +126,7 @@ void ATTDevice::MqttConnect()
 	length = length > 22 ? 22 : length;
     _clientId.toCharArray(mqttId, length);
 	mqttId[length] = 0;
-	String brokerId = _clientId + ":" + _clientId;
+	String brokerId = _clientId + "-vhost:" + _clientId;
 	while (!_mqttclient->connect(mqttId, (char*)brokerId.c_str(), (char*)_clientKey.c_str())) 
 	{
 		#ifdef DEBUG
