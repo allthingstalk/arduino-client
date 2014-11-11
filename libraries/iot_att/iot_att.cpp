@@ -187,7 +187,7 @@ void ATTDevice::Send(String value, char id)
 //subscribe to the mqtt topic so we can receive data from the server.
 void ATTDevice::MqttSubscribe()
 {
-	String MqttString = "client/" + _clientId + "/in/device/" + _deviceId + "/+/command";  //the arduino is only interested in the actuator commands, no management commands
+	String MqttString = "client/" + _clientId + "/in/device/" + _deviceId + "/asset/+/command";  //the arduino is only interested in the actuator commands, no management commands
 	char Mqttstring_buff[MqttString.length()+1];
     MqttString.toCharArray(Mqttstring_buff, MqttString.length()+1);
     _mqttclient->subscribe(Mqttstring_buff);

@@ -265,7 +265,7 @@ void ATTGateway::Send(String deviceId, char sensorId, String value)
 //subscribe to the mqtt topic so we can receive data from the server.
 void ATTGateway::MqttSubscribe(String deviceId)
 {
-	String MqttString = "client/" + _clientId + "/in/device/xbee_" + deviceId + "/+/command";  //arduinos are only intersted in actuator command, no management commands
+	String MqttString = "client/" + _clientId + "/in/device/xbee_" + deviceId + "/asset/+/command";  //arduinos are only intersted in actuator command, no management commands
 	char Mqttstring_buff[MqttString.length()+1];
     MqttString.toCharArray(Mqttstring_buff, MqttString.length()+1);
     _mqttclient->subscribe(Mqttstring_buff);

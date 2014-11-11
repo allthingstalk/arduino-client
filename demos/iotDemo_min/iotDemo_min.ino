@@ -76,7 +76,7 @@ void callback(char* topic, byte* payload, unsigned int length)
   {	                                                    //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
 	char message_buff[length + 1];						//need to copy over the payload so that we can add a /0 terminator, this can then be wrapped inside a string for easy manipulation.
 	strncpy(message_buff, (char*)payload, length);		//copy over the data
-	message_buff[length + 1] = '\0';							    //make certain that it ends with a null			
+	message_buff[length] = '\0';							    //make certain that it ends with a null			
 		  
 	msgString = String(message_buff);
 	msgString.toLowerCase();							//to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent)
