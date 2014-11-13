@@ -1,10 +1,10 @@
-gif_arduino
-===========
+arduino-client
+==============
 
 libraries for arduinos that provides access to the ATT IOT platform.
 There are 3 different flavours of the IOT library in order to perform the best balance between memory usage and automation.
 
-Check the wiki pages for [how-to's and API documentation](https://github.com/allthingstalk/gif_arduino/wiki).
+Check the wiki pages for [how-to's and API documentation](https://github.com/allthingstalk/arduino-client/wiki).
 
 ### flavours
   1. Minimal: uses the least amount of memory, but it requires you to create devices and assets manually from the IOT platform.
