@@ -40,7 +40,6 @@ char sensorId[] = "123";										// uniquely identify this asset. Don't use a s
 char actuatorId[] = "123";									// uniquely identify this asset. Don't use a space in the id.
 
 int ValueIn = 0;                                            // Analog 0 is the input pin
-unsigned int prevVal = 0;                                   //so we only send the value if it was different from prev value.	
 int ledPin = 8;                                             // Pin 8 is the LED output pin 
 
 //required for the device
@@ -57,15 +56,21 @@ void setup()
   Serial.println("init done");
 }
 
+unsigned int prevVal = 0;                                   //so we only send the value if it was different from prev value.	
+unsigned long time;							        //only send every x amount of time.
 void loop()
 {
-  unsigned int lightRead = analogRead(ValueIn);			        // read from light sensor (photocell)
-  if(lightRead != prevVal)
+  unsigned long curTime = millis();
+  if (curTime > (time + 1000)) 							// publish light reading every 5 seconds to sensor 1
   {
-    Device.Send(String(lightRead), sensorId);
-	prevVal = lightRead;
+    unsigned int lightRead = analogRead(ValueIn);			        // read from light sensor (photocell)
+    if(prevVal != lightRead){
+      Device.Send(String(lightRead), sensorId);
+      prevVal = lightRead;
+    }
+    time = curTime;
   }
-  Device.Process(); 
+  Device.Process();  
 }
 
 
