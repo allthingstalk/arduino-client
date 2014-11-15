@@ -1,11 +1,11 @@
 /*
-	iot_att.cpp - SmartLiving.io Arduino library 
+	allthingstalk_arduino_minimal_lib.cpp - SmartLiving.io Arduino library 
 */
 
 #define DEBUG					//turns on debugging in the IOT library. comment out this line to save memory.
 
 
-#include "iot_att_min.h"
+#include "allthingstalk_arduino_minimal_lib.h"
 
 #define RETRYDELAY 5000					//the nr of milliseconds that we pause before retrying to create the connection
 #define ETHERNETDELAY 1000				//the nr of milliseconds that we pause to give the ethernet board time to start
@@ -67,7 +67,7 @@ void ATTDevice::Process()
 }
 
 //send a data value to the cloud server for the sensor with the specified id.
-void ATTDevice::Send(String value, char id)
+void ATTDevice::Send(String value, char* id)
 {
 	if(_mqttclient->connected() == false)
 	{
@@ -90,9 +90,9 @@ void ATTDevice::Send(String value, char id)
 																	
 	char* Mqttstring_buff;
 	{
-		int length = _clientId.length() + 26;
+		int length = _clientId.length() + strlen(id) + 26;
 		Mqttstring_buff = new char[length];
-		sprintf(Mqttstring_buff, "client/%s/out/asset/%s%c/state", _clientId.c_str(),  id);      
+		sprintf(Mqttstring_buff, "client/%s/out/asset/%s/state", _clientId.c_str(), id);      
 		Mqttstring_buff[length-1] = 0;
 	}
 	_mqttclient->publish(Mqttstring_buff, message_buff);

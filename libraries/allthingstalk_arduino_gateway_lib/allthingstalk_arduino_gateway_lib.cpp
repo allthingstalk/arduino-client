@@ -2,7 +2,7 @@
 
 Not yet supported
 
-	iot_att_gateway.cpp - SmartLiving.io Arduino library 
+	allthingstalk_arduino_gateway_lib.cpp - SmartLiving.io Arduino library 
 	provides a way to create devices & assets + send & receives asset values to/from the cloud.
 	
 	Author: Jan Bogaerts
@@ -12,7 +12,7 @@ Not yet supported
 #define DEBUG					//turns on debugging in the IOT library. comment out this line to save memory.
 
 
-#include "iot_att_gateway.h"
+#include "allthingstalk_arduino_gateway_lib.h"
 
 #define RETRYDELAY 5000					//the nr of milliseconds that we pause before retrying to create the connection
 #define ETHERNETDELAY 1000		        //the nr of milliseconds that we pause to give the ethernet board time to start

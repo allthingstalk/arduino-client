@@ -1,15 +1,11 @@
 /*
-	iot_att.cpp - SmartLiving.io Arduino library 
-
-	Morse.cpp - Library for flashing Morse code.
-	Created by David A. Mellis, November 2, 2007.
-	Released into the public domain.
+	allthingstalk_arduino_standard_lib.cpp - SmartLiving.io Arduino library 
 */
 
 #define DEBUG					//turns on debugging in the IOT library. comment out this line to save memory.
 
 
-#include "iot_att.h"
+#include "allthingstalk_arduino_standard_lib.h"
 
 #define RETRYDELAY 5000					//the nr of milliseconds that we pause before retrying to create the connection
 #define ETHERNETDELAY 1000		//the nr of milliseconds that we pause to give the ethernet board time to start

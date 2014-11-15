@@ -4,7 +4,7 @@
 
 #include <SPI.h>                        //required to have support for signed/unsigned long type.
 #include <XBee.h>
-#include <iot_att_gateway.h>			//routines for working with the iot platform
+#include <allthingstalk_arduino_gateway_lib.h>			//routines for working with the iot platform
 
 /*
   AllThingsTalk Makers Arduino-gateway template
@@ -26,7 +26,7 @@ char clientId[] = "Your client id comes here";
 char clientKey[] = "Your client key comes here";
 
 ATTGateway Gateway(clientId, clientKey);                        //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "beta.smartliving.io";                      // HTTP API Server host
+char httpServer[] = "api.smartliving.io";                      // HTTP API Server host
 char* mqttServer = "broker.smartliving.io";                     // MQTT(ATT1) Server 
 void callback(char* topic, byte* payload, unsigned int length);
 EthernetClient ethClient;

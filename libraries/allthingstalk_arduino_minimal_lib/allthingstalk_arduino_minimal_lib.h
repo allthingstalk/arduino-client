@@ -26,7 +26,7 @@ class ATTDevice
 		void Subscribe(byte* mac, PubSubClient &mqttclient, char* clientKey);
 		
 		//send a data value to the cloud server for the sensor with the specified id.
-		void Send(String value, char id);
+		void Send(String value, char* id);
 	
 		//check for any new mqtt messages.
 		void Process();

@@ -1,7 +1,7 @@
 #include <Ethernet.h>			//for loading components required by the iot device object.
 #include <PubSubClient.h>
 
-#include <iot_att_min.h>
+#include <allthingstalk_arduino_minimal_lib.h>
 #include <SPI.h>                //required to have support for signed/unsigned long type.
 
 /*
@@ -36,8 +36,8 @@ char* mqttServer = "broker.smartliving.io";
 
 byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E }; 	    // Adapt to your Arduino MAC Address  
 
-char sensorId = '1';										// uniquely identify this asset. Don't use a space in the id.
-char actuatorId = '2';									// uniquely identify this asset. Don't use a space in the id.
+char sensorId[] = "123";										// uniquely identify this asset. Don't use a space in the id.
+char actuatorId[] = "123";									// uniquely identify this asset. Don't use a space in the id.
 
 int ValueIn = 0;                                            // Analog 0 is the input pin
 unsigned int prevVal = 0;                                   //so we only send the value if it was different from prev value.	
@@ -90,18 +90,18 @@ void callback(char* topic, byte* payload, unsigned int length)
     Serial.print("topic: ");
     Serial.println(topic);
 	
-    if (topic[topicLength - 9] == actuatorId)        //warning: the topic will always be lowercase. The id of the actuator to use is near the end of the topic. We can only get actuator commands, so no extra check is required.
+    if (topic[topicLength - 9] == actuatorId[strlen(actuatorId) - 1])        //warning: the topic will always be lowercase. The id of the actuator to use is near the end of the topic. We can only get actuator commands, so no extra check is required.
     {
       if (msgString == "false") {
         digitalWrite(ledPin, LOW);					        //change the led	
-        idOut = &actuatorId;		                        
+        idOut = actuatorId;		                        
       }
       else if (msgString == "true") {
         digitalWrite(ledPin, HIGH);
-        idOut = &actuatorId;
+        idOut = actuatorId;
       }
     }
   }
   if(idOut != NULL)                //also let the iot platform know that the operation was succesful: give it some feedback. This also allows the iot to update the GUI's correctly & run scenarios.
-    Device.Send(msgString, *idOut);    
+    Device.Send(msgString, idOut);    
 }

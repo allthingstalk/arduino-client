@@ -1,7 +1,7 @@
 #include <Ethernet.h>			//for loading components required by the iot device object.
 #include <PubSubClient.h>
 
-#include <iot_att.h>
+#include <allthingstalk_arduino_standard_lib.h>
 #include <SPI.h>                //required to have support for signed/unsigned long type.
 
 /*
@@ -31,7 +31,7 @@ char clientId[] = ""; // Your client id comes here
 char clientKey[] = "";// Your client key comes here
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "webapimanagement.cloudapp.net";                  // HTTP API Server host
+char httpServer[] = "api.smartliving.io";                  // HTTP API Server host
 char* mqttServer = "broker.smartliving.io";                   
 
 byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E }; 	    // Adapt to your Arduino MAC Address  
@@ -63,13 +63,17 @@ void setup()
 }
 
 unsigned long time;							        //only send every x amount of time.
+unsigned int prevVal =0;
 void loop()
 {
   unsigned long curTime = millis();
-  if (curTime > (time + 5000)) 							// publish light reading every 5 seconds to sensor 1
+  if (curTime > (time + 1000)) 							// publish light reading every 5 seconds to sensor 1
   {
-    unsigned int lightRead = analogRead(ValueIn);			        // read from potentio meter
-    Device.Send(String(lightRead), sensorId);
+    unsigned int lightRead = analogRead(ValueIn);			        // read from light sensor (photocell)
+    if(prevVal != lightRead){
+      Device.Send(String(lightRead), sensorId);
+      prevVal = lightRead;
+    }
     time = curTime;
   }
   Device.Process(); 
