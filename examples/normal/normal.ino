@@ -54,8 +54,8 @@ void setup()
   
   if(Device.Connect(mac, httpServer))					          // connect the device with the IOT platform.
   {
-    Device.AddAsset(sensorId, F("Sensor_name"), F("your sensor description"), false, F("int"));   
-    Device.AddAsset(actuatorId, F("actuator_name"), F("your actuator description"), true, F("bool"));
+    Device.AddAsset(sensorId, F("YOUR_SENSOR_NAME_HERE"), F("YOUR_SENSOR_DESCRIPTION_HERE"),false, F("int"));
+    Device.AddAsset(actuatorId, F("YOUR_ACTUATOR_NAME_HERE"), F("YOUR_ACTUATOR_DESCRIPTION_HERE"), true, F("bool"));
     Device.Subscribe(pubSub);						        // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 
