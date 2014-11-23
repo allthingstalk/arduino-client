@@ -14,8 +14,8 @@
     - Grove kit shield
     - Potentiometer to A0
     - Led light to D8
-  2. Add 'iot_att' library to your Arduino Environment. [Try this guide](http://arduino.cc/en/Guide/Libraries)
-  3. fill in the missing strings (deviceId, clientId, clientKey, mac) and optionally change/add the sensor & actuator names, ids, descriptions, types
+  2. Add 'allthingstalk_arduino_standard_lib' library to your Arduino Environment. [Try this guide](http://arduino.cc/en/Guide/Libraries)
+  3. Fill in the missing strings (deviceId, clientId, clientKey, mac) and optionally change/add the sensor & actuator names, ids, descriptions, types
      For extra actuators, make certain to extend the callback code at the end of the sketch.
   4. Upload the sketch
 
@@ -34,7 +34,7 @@ ATTDevice Device(deviceId, clientId, clientKey);            //create the object 
 char httpServer[] = "api.smartliving.io";                  // HTTP API Server host
 char* mqttServer = "broker.smartliving.io";                   
 
-byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E }; 	    // Adapt to your Arduino MAC Address  
+byte mac[] = {0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E}; 	    // Adapt to your Arduino MAC Address  
 
 char sensorId = '1';										// uniquely identify this asset. Don't use spaces in the id.
 char actuatorId = '2';									// uniquely identify this asset. Don't use spaces in the id.
