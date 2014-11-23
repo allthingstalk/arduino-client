@@ -22,13 +22,13 @@
   ### Troubleshooting
 
   1. 'Device' type is reported to be missing. 
-  - Make sure to properly add the 'iot_att' library
+  - Make sure to properly add the arduino/libraries/allthingstalk_arduino_standard_lib/ library
 
 */
 
-char deviceId[] = ""; // Your device id comes here
-char clientId[] = ""; // Your client id comes here
-char clientKey[] = "";// Your client key comes here
+char deviceId[] = "YOUR_DEVICE_ID_HERE";
+char clientId[] = "YOUR_CLIENT_ID_HERE";
+char clientKey[] = "YOUR_CLIENT_KEY_HERE";
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
 char httpServer[] = "api.smartliving.io";                  // HTTP API Server host
