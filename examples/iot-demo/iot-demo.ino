@@ -36,11 +36,8 @@ char* mqttServer = "broker.smartliving.io";
 
 byte mac[] = {0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E}; 	    // Adapt to your Arduino MAC Address  
 
-char sensorId = '1';										// uniquely identify this asset. Don't use spaces in the id.
-char actuatorId = '2';									// uniquely identify this asset. Don't use spaces in the id.
-
-int ValueIn = 0;                                            // Analog 0 is the input pin
-int ledPin = 8;                                             // Pin 8 is the LED output pin 
+int knobPin = 0;                                            // Analog 0 is the input pin + identifies the asset on the cloud platform
+int ledPin = 8;                                             // Pin 8 is the LED output pin + identifies the asset on the cloud platform
 
 //required for the device
 void callback(char* topic, byte* payload, unsigned int length);
@@ -54,8 +51,8 @@ void setup()
   
   if(Device.Connect(mac, httpServer))					          // connect the device with the IOT platform.
   {
-    Device.AddAsset(sensorId, F("YOUR_SENSOR_NAME_HERE"), F("YOUR_SENSOR_DESCRIPTION_HERE"),false, F("int"));
-    Device.AddAsset(actuatorId, F("YOUR_ACTUATOR_NAME_HERE"), F("YOUR_ACTUATOR_DESCRIPTION_HERE"), true, F("bool"));
+    Device.AddAsset(knobPin, "knob", "rotary switch",false, "int");
+    Device.AddAsset(ledPin, "led", "light emitting diode", true, "bool");
     Device.Subscribe(pubSub);						        // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 
@@ -69,9 +66,9 @@ void loop()
   unsigned long curTime = millis();
   if (curTime > (time + 1000)) 							// publish light reading every 5 seconds to sensor 1
   {
-    unsigned int lightRead = analogRead(ValueIn);			        // read from light sensor (photocell)
+    unsigned int lightRead = analogRead(knobPin);			        // read from light sensor (photocell)
     if(prevVal != lightRead){
-      Device.Send(String(lightRead), sensorId);
+      Device.Send(String(lightRead), knobPin);
       prevVal = lightRead;
     }
     time = curTime;
@@ -92,7 +89,7 @@ void callback(char* topic, byte* payload, unsigned int length)
 	msgString = String(message_buff);
 	msgString.toLowerCase();							//to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent)
   }
-  char* idOut = NULL;
+  int* idOut = NULL;
   {	                                                    //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
 	int topicLength = strlen(topic);
 	
@@ -101,15 +98,15 @@ void callback(char* topic, byte* payload, unsigned int length)
 	Serial.print("topic: ");
 	Serial.println(topic);
 	
-	if (topic[topicLength - 9] == actuatorId)        //warning: the topic will always be lowercase. The id of the actuator to use is near the end of the topic. We can only get actuator commands, so no extra check is required.
+	if (topic[topicLength - 9] == (ledPin + 48))        //warning: only a max of 10 actuators supported (0-9)
 	{
 	  if (msgString == "false") {
             digitalWrite(ledPin, LOW);					        //change the led	
-            idOut = &actuatorId;		                        
+            idOut = &ledPin;		                        
 	  }
 	  else if (msgString == "true") {
 	    digitalWrite(ledPin, HIGH);
-            idOut = &actuatorId;
+            idOut = &ledPin;
 	  }
 	}
   }

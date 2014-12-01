@@ -59,10 +59,10 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 }
 
 //create or update the specified asset.
-void ATTDevice::AddAsset(char id, String name, String description, bool isActuator, String type)
+void ATTDevice::AddAsset(int id, String name, String description, bool isActuator, String type)
 {
     // Make a HTTP request:
-	_client.println("PUT /api/asset/" + _deviceId + id + " HTTP/1.1");
+	_client.println("PUT /api/asset/" + _deviceId +  (char)(id + 48) + " HTTP/1.1");
     _client.print(F("Host: "));
     _client.println(_serverName);
     _client.println(F("Content-Type: application/json"));
@@ -145,7 +145,7 @@ void ATTDevice::Process()
 }
 
 //send a data value to the cloud server for the sensor with the specified id.
-void ATTDevice::Send(String value, char id)
+void ATTDevice::Send(String value, int id)
 {
 	if(_mqttclient->connected() == false)
 	{
@@ -170,7 +170,7 @@ void ATTDevice::Send(String value, char id)
 	{
 		int length = _clientId.length() + _deviceId.length() + 26;
 		Mqttstring_buff = new char[length];
-		sprintf(Mqttstring_buff, "client/%s/out/asset/%s%c/state", _clientId.c_str(), _deviceId.c_str(), id);      
+		sprintf(Mqttstring_buff, "client/%s/out/asset/%s%c/state", _clientId.c_str(), _deviceId.c_str(), (char)(id + 48));      
 		Mqttstring_buff[length-1] = 0;
 	}
 	_mqttclient->publish(Mqttstring_buff, message_buff);
