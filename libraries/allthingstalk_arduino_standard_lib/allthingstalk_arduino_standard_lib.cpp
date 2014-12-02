@@ -118,9 +118,9 @@ void ATTDevice::Subscribe(PubSubClient& mqttclient)
 void ATTDevice::MqttConnect()
 {
 	char mqttId[23]; // Or something long enough to hold the longest file name you will ever use.
-	int length = _clientId.length();
+	int length = _deviceId.length();
 	length = length > 22 ? 22 : length;
-    _clientId.toCharArray(mqttId, length);
+    _deviceId.toCharArray(mqttId, length);
 	mqttId[length] = 0;
 	String brokerId = _clientId + ":" + _clientId;
 	while (!_mqttclient->connect(mqttId, (char*)brokerId.c_str(), (char*)_clientKey.c_str())) 
