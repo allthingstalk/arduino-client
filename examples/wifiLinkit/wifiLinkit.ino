@@ -35,12 +35,12 @@ char deviceId[] = "YOUR_DEVICE_ID_HERE";
 char clientId[] = "YOUR_CLIENT_ID_HERE";
 char clientKey[] = "YOUR_CLIENT_KEY_HERE";
 
-//Warning the LinkIt maps pin numbers differently compared to the arduino. LinkIt pin numbers can be 
+//Warning the LinkIt maps some pin numbers differently compared to the arduino. LinkIt pin numbers can be 
 //bigger then 9, which doesn't work well with the AllthingsTalk library: it expects asset id's between 0 and 9, 
 //the solution: define a different asset id for each pin, which is in the correct range.
 int a0=A0;
 int a0Id=0;
-int a1=13;
+int a1=8;
 int a1Id=1;
 
 ATTDevice Device(deviceId, clientId, clientKey);                //create the object that provides the connection to the cloud to manager the device.
