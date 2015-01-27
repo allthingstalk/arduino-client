@@ -10,10 +10,10 @@ Original author: Peter Leemans (2014)
 #define ATTDevice_h
 
 #include "Arduino.h"
-#include <Ethernet.h>
+#include <Client.h>
 #include <PubSubClient.h>
 #include <string.h>
-#include <Dhcp.h>
+//#include <Dhcp.h>
 
 //this class represents the ATT cloud platform.
 class ATTDevice
@@ -23,10 +23,10 @@ class ATTDevice
 		ATTDevice(String deviceId, String clientId, String clientKey);
 		
 		/*connect with the http server (call first)
-		-mac: the mac address of the arduino (4 bytes)
+		-Client: the client object to use for communciating with the cloud HTTP server (this is usually an EthernetClient, WifiClient or similar)
 		-httpServer: the name of the http server to use, kept in memory until after calling 'Subscribe' 
 		returns: true when subscribe was succesfulll, otherwise false.*/
-		bool Connect(byte mac[], char httpServer[]);
+		bool Connect(Client* httpClient, char httpServer[]);
 		
 		//create or update the specified asset. (call after connecting)
 		//note: after this call, the name will be in lower case, so that it can be used to compare with the topic of incomming messages.
@@ -45,7 +45,7 @@ class ATTDevice
 		String _deviceId;				//the device id provided by the user.
 		String _clientId;				//the client id provided by the user.	
 		String _clientKey;				//the client key provided by the user.
-		EthernetClient _client;			//raw http communication. Possible to save some memory here: pass the client as a param in connect, put the object local in the setup function.
+		Client* _client;			//raw http communication. Possible to save some memory here: pass the client as a param in connect, put the object local in the setup function.
 		PubSubClient* _mqttclient;		//provides mqtt support
 		
 		//subscribe to the mqtt topic so we can receive data from the server.

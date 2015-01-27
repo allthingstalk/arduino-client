@@ -26,8 +26,9 @@ char SUCCESTXT[] = " established";
 #endif
 
 //create the object
-ATTGateway::ATTGateway(String clientId, String clientKey)
+ATTGateway::ATTGateway(String gatewayType, String clientId, String clientKey)
 {
+	_gatewayType = gatewayType;
 	_clientId = clientId;
 	_clientKey = clientKey;
 }
@@ -36,18 +37,12 @@ ATTGateway::ATTGateway(String clientId, String clientKey)
 bool ATTGateway::Connect(byte mac[], char httpServer[])
 {
 	_serverName = httpServer;					//keep track of this value while working with the http server.
-	if (Ethernet.begin(mac) == 0) 				// Initialize the Ethernet connection:
-	{	
-		Serial.println(F("DHCP failed,end"));
-		return false;							//we failed to connect
-	}
-	delay(ETHERNETDELAY);							// give the Ethernet shield a second to initialize:
 	
 	#ifdef DEBUG
 	Serial.println(F("Connecting"));
 	#endif
 
-	while (!_client.connect(httpServer, 80)) 		// if you get a connection, report back via serial:
+	while (!_client->connect(httpServer, 80)) 		// if you get a connection, report back via serial:
 	{
 		#ifdef DEBUG
 		Serial.print(HTTPSERVTEXT);
@@ -67,28 +62,29 @@ bool ATTGateway::Connect(byte mac[], char httpServer[])
 void ATTGateway::AddDevice(String deviceId, String name, String description)
 {
 	// Make a HTTP request:
-	_client.println("POST /api/device HTTP/1.1");
-    _client.print(F("Host: "));
-    _client.println(_serverName);
-    _client.println(F("Content-Type: application/json"));
-    _client.print(F("Auth-ClientKey: "));_client.println(_clientKey);
-    _client.print(F("Auth-ClientId: "));_client.println(_clientId); 
+	_client->println("POST /api/device HTTP/1.1");
+    _client->print(F("Host: "));
+    _client->println(_serverName);
+    _client->println(F("Content-Type: application/json"));
+    _client->print(F("Auth-ClientKey: "));_client->println(_clientKey);
+    _client->print(F("Auth-ClientId: "));_client->println(_clientId); 
 
-	_client.print(F("Content-Length: "));
+	_client->print(F("Content-Length: "));
 	{																					//make every mem op local, so it is unloaded asap
-		int length = name.length() + description.length() + deviceId.length() + 43;
-		_client.println(length);
+		int length = name.length() + description.length() + deviceId.length() + _gatewayType.length() + 38;
+		_client->println(length);
 	}
 	
-    _client.println();
-	_client.print(F("{\"id\":\"xbee_")); //12
-	_client.print(deviceId);
-	_client.print(F("\", \"name\":\"")); //11
-	_client.print(name);
-	_client.print(F("\",\"description\":\"")); //17
-	_client.print(description);
-	_client.print(F("\" }"));  //3
-	_client.println();
+    _client->println();
+	_client->print(F("{\"id\":\"")); //7
+	_client->print(_gatewayType);
+	_client->print(deviceId);
+	_client->print(F("\", \"name\":\"")); //11
+	_client->print(name);
+	_client->print(F("\",\"description\":\"")); //17
+	_client->print(description);
+	_client->print(F("\" }"));  //3
+	_client->println();
  
     delay(ETHERNETDELAY);
 	if(CheckHTTPResult('2', '0','1')){
@@ -104,13 +100,13 @@ void ATTGateway::AddDevice(String deviceId, String name, String description)
 bool ATTGateway::DeviceExists(String deviceId)
 {
 	// Make a HTTP request:
-	_client.println("GET /api/device/xbee_" + deviceId + " HTTP/1.1");
-    _client.print(F("Host: "));
-    _client.println(_serverName);
-    _client.println(F("Content-Type: application/json"));
-    _client.print(F("Auth-ClientKey: "));_client.println(_clientKey);
-    _client.print(F("Auth-ClientId: "));_client.println(_clientId); 
-    _client.println();
+	_client->println("GET /api/device/" + _gatewayType + deviceId + " HTTP/1.1");
+    _client->print(F("Host: "));
+    _client->println(_serverName);
+    _client->println(F("Content-Type: application/json"));
+    _client->print(F("Auth-ClientKey: "));_client->println(_clientKey);
+    _client->print(F("Auth-ClientId: "));_client->println(_clientId); 
+    _client->println();
  
     delay(ETHERNETDELAY);
 	return CheckHTTPResult('2', '0','0');
@@ -120,19 +116,19 @@ bool ATTGateway::DeviceExists(String deviceId)
 //ex: CheckHTTPResult('2','0','0')  will check if the http server returned 200 OK
 bool ATTGateway::CheckHTTPResult(char a, char b, char c)
 {
-	if(_client.available()){							//check the result
+	if(_client->available()){							//check the result
 		int count = 0;
-		while (_client.available()) {
+		while (_client->available()) {
 			count++;
-			char c = _client.read();
+			char c = _client->read();
 			if((count == 10 && c != a) ||
                (count == 11 && c != b) ||
 			   (count == 12 && c != c) ){					//if the result starting at pos 10 is 200, then the device exists, otherwise it doesn't
-				_client.flush();							//make certain that there is nothing left in the ethernet buffer, cause this can screw up the other actions.
+				_client->flush();							//make certain that there is nothing left in the ethernet buffer, cause this can screw up the other actions.
 				return false;
 			}
 			else if(count > 12)							//when we have read more then 11 bytes, we know the result, so discard anything else that came in
-				_client.flush();
+				_client->flush();
 		}
 		return count > 12;								//if the count > 11, and we get here, then the http result contained '200', so the device exists.
 	}	
@@ -143,44 +139,46 @@ bool ATTGateway::CheckHTTPResult(char a, char b, char c)
 void ATTGateway::AddAsset(String deviceId, char id, String name, String description, bool isActuator, String type)
 {
     // Make a HTTP request:
-	_client.print(F("PUT /api/asset/xbee_"));
-	_client.print(deviceId);
-	_client.print(F("_"));
-	_client.print(id);
-	_client.println(" HTTP/1.1");
+	_client->print(F("PUT /api/asset/"));
+	_client->print(_gatewayType);
+	_client->print(deviceId);
+	_client->print(F("_"));
+	_client->print(id);
+	_client->println(" HTTP/1.1");
     
-	_client.print(F("Host: "));
-    _client.println(_serverName);
-    _client.println(F("Content-Type: application/json"));
-    _client.print(F("Auth-ClientKey: "));_client.println(_clientKey);
-    _client.print(F("Auth-ClientId: "));_client.println(_clientId); 
+	_client->print(F("Host: "));
+    _client->println(_serverName);
+    _client->println(F("Content-Type: application/json"));
+    _client->print(F("Auth-ClientKey: "));_client->println(_clientKey);
+    _client->print(F("Auth-ClientId: "));_client->println(_clientId); 
 	
-	_client.print(F("Content-Length: "));
+	_client->print(F("Content-Length: "));
 	{																					//make every mem op local, so it is unloaded asap
-		int length = name.length() + description.length() + type.length() + deviceId.length() + 82;
+		int length = name.length() + description.length() + type.length() + deviceId.length() + _gatewayType.lenth() + 77;
 		if(isActuator) 
 			length += 8;
 		else 
 			length += 6;
-		_client.println(length);
+		_client->println(length);
 	}
-    _client.println();
+    _client->println();
     
-	_client.print(F("{\"name\":\"")); //9
-	_client.print(name);
-	_client.print(F("\",\"description\":\""));  //17
-	_client.print(description);
-	_client.print(F("\",\"is\":\"")); //8
+	_client->print(F("{\"name\":\"")); //9
+	_client->print(name);
+	_client->print(F("\",\"description\":\""));  //17
+	_client->print(description);
+	_client->print(F("\",\"is\":\"")); //8
 	if(isActuator) 
-		_client.print(F("actuator"));
+		_client->print(F("actuator"));
 	else
-		_client.print(F("sensor"));
-    _client.print(F("\",\"profile\": { \"type\":\"")); //23
-	_client.print(type);
-	_client.print(F("\" }, \"deviceId\":\"xbee_"));  //22
-	_client.print(deviceId);
-	_client.print(F("\" }"));  //3
-	_client.println();
+		_client->print(F("sensor"));
+    _client->print(F("\",\"profile\": { \"type\":\"")); //23
+	_client->print(type);
+	_client->print(F("\" }, \"deviceId\":\""));  //17
+	_client->print(_gatewayType);
+	_client->print(deviceId);
+	_client->print(F("\" }"));  //3
+	_client->println();
  
     delay(ETHERNETDELAY);
 	if(CheckHTTPResult('2', '0','1'))
@@ -201,7 +199,9 @@ void ATTGateway::Subscribe(PubSubClient& mqttclient)
 void ATTGateway::MqttConnect()
 {
 	char mqttId[23]; // Or something long enough to hold the longest file name you will ever use.
-	int length = _clientId.length();
+	
+	//****PROBLEM: using the _clientId is not a good idea -> only 1 device can connect to broker with this string, need to use GateayId (not yet available) for this value.
+	int length = _clientId.length();				
 	length = length > 22 ? 22 : length;
     _clientId.toCharArray(mqttId, length);
 	mqttId[length] = 0;
@@ -252,7 +252,7 @@ void ATTGateway::Send(String deviceId, char sensorId, String value)
 	{
 		int length = _clientId.length() + deviceId.length() + 30;
 		Mqttstring_buff = new char[length];
-		sprintf(Mqttstring_buff, "client/%s/out/asset/xbee_%s_%c/state", _clientId.c_str(), deviceId.c_str(), sensorId);      
+		sprintf(Mqttstring_buff, "client/%s/out/asset/%s%s_%c/state", _clientId.c_str(), _gatewayType.c_str(), deviceId.c_str(), sensorId);      
 		Mqttstring_buff[length-1] = 0;
 	}
 	_mqttclient->publish(Mqttstring_buff, message_buff);
@@ -265,7 +265,7 @@ void ATTGateway::Send(String deviceId, char sensorId, String value)
 //subscribe to the mqtt topic so we can receive data from the server.
 void ATTGateway::MqttSubscribe(String deviceId)
 {
-	String MqttString = "client/" + _clientId + "/in/device/xbee_" + deviceId + "/asset/+/command";  //arduinos are only intersted in actuator command, no management commands
+	String MqttString = "client/" + _clientId + "/in/device/" + _gatewayType + deviceId + "/asset/+/command";  //arduinos are only intersted in actuator command, no management commands
 	char Mqttstring_buff[MqttString.length()+1];
     MqttString.toCharArray(Mqttstring_buff, MqttString.length()+1);
     _mqttclient->subscribe(Mqttstring_buff);

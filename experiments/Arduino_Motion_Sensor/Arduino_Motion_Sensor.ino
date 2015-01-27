@@ -33,9 +33,6 @@ ATTDevice Device(deviceId, clientId, clientKey);            //create the object 
 char httpServer[] = "api.smartliving.io";                   // HTTP API Server host                  
 char mqttServer[] = "broker.smartliving.io";		    // MQTT Server IP Address
 
-
-byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0x8D, 0x3D }; 	    // Adapt to your Arduino MAC Address  
-
 int PIR_MOTION_SENSOR = 2;                                  // Define PIN number on shield & also used to construct Unique AssetID                      
 int LED = 8;                                                // Define PIN number on shield & also used to construct Unique AssetID
 
@@ -52,7 +49,15 @@ void setup()
   
   Serial.begin(9600);							         // init serial link for debugging
   
-  if(Device.Connect(mac, httpServer))					         // connect the device with the IOT platform.
+  byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0x8D, 0x3D }; 	    // Adapt to your Arduino MAC Address  
+  if (Ethernet.begin(mac) == 0) 				                // Initialize the Ethernet connection:
+  {	
+    Serial.println(F("DHCP failed,end"));
+    while(true);							        //we failed to connect, halt execution here. 
+  }
+  delay(1000);							                //give the Ethernet shield a second to initialize:
+  
+  if(Device.Connect(&ethClient, httpServer))					         // connect the device with the IOT platform.
   {
     Device.AddAsset(PIR_MOTION_SENSOR, "PIR", "Motion Sensor", false, "bool");   // Create the asset for your device
     Device.AddAsset(LED, "LED", "Light Emitting Diode", true, "bool");           // Create the asset for your device
@@ -71,13 +76,9 @@ void loop()
     Motion = MotionRead;
     delay(100);                                                                 // eliminate bounce effect
     if (MotionRead == 1)
-    {
        Device.Send("true", PIR_MOTION_SENSOR);
-    }
     else
-    {
        Device.Send("false", PIR_MOTION_SENSOR);
-    }
   }
   Device.Process(); 
 }
@@ -104,7 +105,7 @@ void callback(char* topic, byte* payload, unsigned int length)
 	Serial.print("topic: ");
 	Serial.println(topic);
 	
-	if (topic[topicLength - 9] == LED+48)                  //warning: the topic will always be lowercase. The id of the actuator to use is near the end of the topic. We can only get actuator commands, so no extra check is required.
+	if (topic[topicLength - 9] == LED+48)                  //warning: only a max of 10 actuators supported (0-9). +48 is used to convert from integer to the ascii value of the number (the topic contains the ascii number, not an integer).
 	{
 	  if (msgString == "false") {
             digitalWrite(LED, LOW);		      

@@ -34,13 +34,7 @@ ATTDevice Device(deviceId, clientId, clientKey);            //create the object 
 char httpServer[] = "api.smartliving.io";        // HTTP API Server host                  
 char mqttServer[] = "broker.smartliving.io";		    // MQTT(ATT1) Server IP Address
 
-byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0x8D, 0x3D }; 	    // Adapt to your Arduino MAC Address  
-
-
 int doorbell = 8;                                            // Digital 8 is the input pin, this corresponds with the number on the Grove shiled where the push button is attached to
-
-
-
 
 //required for the device
 void callback(char* topic, byte* payload, unsigned int length);
@@ -48,11 +42,18 @@ EthernetClient ethClient;
 PubSubClient pubSub(mqttServer, 1883, callback, ethClient);
 
 void setup()
-{
-         
+{   
   Serial.begin(9600);							         // init serial link for debugging
   
-  if(Device.Connect(mac, httpServer))					         // connect the device with the IOT platform.
+  byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0x8D, 0x3D }; 	    // Adapt to your Arduino MAC Address  
+  if (Ethernet.begin(mac) == 0) 				                // Initialize the Ethernet connection:
+  {	
+    Serial.println(F("DHCP failed,end"));
+    while(true);							        //we failed to connect, halt execution here. 
+  }
+  delay(1000);							                //give the Ethernet shield a second to initialize:
+  
+  if(Device.Connect(&ethClient, httpServer))					         // connect the device with the IOT platform.
   {
     Device.AddAsset(doorbell, "Doorbell", "Doorbell button", false, "bool");         // Create the asset for your device
     Device.Subscribe(pubSub);						         // make certain that we can receive message from the iot platform (activate mqtt)
@@ -70,13 +71,9 @@ void loop()
     pbutton = pbuttonRead;
     delay(100);
     if (pbuttonRead == 1)
-    {
        Device.Send("true", doorbell);
-    }
     else
-    {
        Device.Send("false", doorbell);
-    }
   }
   Device.Process(); 
 }

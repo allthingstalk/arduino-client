@@ -27,21 +27,16 @@ ATTDevice::ATTDevice(String deviceId, String clientId, String clientKey)
 }
 
 //connect with the http server
-bool ATTDevice::Connect(byte mac[], char httpServer[])
+bool ATTDevice::Connect(Client* httpClient, char httpServer[])
 {
+	_client = httpClient;
 	_serverName = httpServer;					//keep track of this value while working with the http server.
-	if (Ethernet.begin(mac) == 0) 				// Initialize the Ethernet connection:
-	{	
-		Serial.println(F("DHCP failed,end"));
-		return false;							//we failed to connect
-	}
-	delay(ETHERNETDELAY);							// give the Ethernet shield a second to initialize:
 	
 	#ifdef DEBUG
 	Serial.println(F("Connecting"));
 	#endif
 
-	while (!_client.connect(httpServer, 80)) 		// if you get a connection, report back via serial:
+	while (!_client->connect(httpServer, 80)) 		// if you get a connection, report back via serial:
 	{
 		#ifdef DEBUG
 		Serial.print(HTTPSERVTEXT);
@@ -62,40 +57,40 @@ bool ATTDevice::Connect(byte mac[], char httpServer[])
 void ATTDevice::AddAsset(int id, String name, String description, bool isActuator, String type)
 {
     // Make a HTTP request:
-	_client.println("PUT /api/asset/" + _deviceId +  (char)(id + 48) + " HTTP/1.1");
-    _client.print(F("Host: "));
-    _client.println(_serverName);
-    _client.println(F("Content-Type: application/json"));
-    _client.print(F("Auth-ClientKey: "));_client.println(_clientKey);
-    _client.print(F("Auth-ClientId: "));_client.println(_clientId); 
+	_client->println("PUT /asset/" + _deviceId +  (char)(id + 48) + " HTTP/1.1");
+    _client->print(F("Host: "));
+    _client->println(_serverName);
+    _client->println(F("Content-Type: application/json"));
+    _client->print(F("Auth-ClientKey: "));_client->println(_clientKey);
+    _client->print(F("Auth-ClientId: "));_client->println(_clientId); 
 	
-	_client.print(F("Content-Length: "));
+	_client->print(F("Content-Length: "));
 	{																					//make every mem op local, so it is unloaded asap
 		int length = name.length() + description.length() + type.length() + _deviceId.length() + 77;
 		if(isActuator) 
 			length += 8;
 		else 
 			length += 6;
-		_client.println(length);
+		_client->println(length);
 	}
-    _client.println();
+    _client->println();
     
-	_client.print(F("{\"name\":\"")); 
-	_client.print(name);
-	_client.print(F("\",\"description\":\""));
-	_client.print(description);
-	_client.print(F("\",\"is\":\""));
+	_client->print(F("{\"name\":\"")); 
+	_client->print(name);
+	_client->print(F("\",\"description\":\""));
+	_client->print(description);
+	_client->print(F("\",\"is\":\""));
 	if(isActuator) 
-		_client.print(F("actuator"));
+		_client->print(F("actuator"));
 	else 
-		_client.print(F("sensor"));
-    _client.print(F("\",\"profile\": { \"type\":\""));
-	_client.print(type);
-	_client.print(F("\" }, \"deviceId\":\""));
-	_client.print(_deviceId);
-	_client.print(F("\" }"));
-	_client.println();
-    _client.println();
+		_client->print(F("sensor"));
+    _client->print(F("\",\"profile\": { \"type\":\""));
+	_client->print(type);
+	_client->print(F("\" }, \"deviceId\":\""));
+	_client->print(_deviceId);
+	_client->print(F("\" }"));
+	_client->println();
+    _client->println();
  
     delay(ETHERNETDELAY);
 	GetHTTPResult();			//get the response from the server and show it.
@@ -109,8 +104,9 @@ void ATTDevice::Subscribe(PubSubClient& mqttclient)
 	#ifdef DEBUG
 	Serial.println(F("Stopping HTTP"));
 	#endif
-	_client.flush();
-	_client.stop();
+	_client->flush();
+	_client->stop();
+	_client = NULL;
 	MqttConnect();
 }
 
@@ -197,9 +193,9 @@ void ATTDevice::GetHTTPResult()
 {
 	// If there's incoming data from the net connection, send it out the serial port
 	// This is for debugging purposes only
-	if(_client.available()){
-		while (_client.available()) {
-			char c = _client.read();
+	if(_client->available()){
+		while (_client->available()) {
+			char c = _client->read();
 			Serial.print(c);
 		}
 		Serial.println();

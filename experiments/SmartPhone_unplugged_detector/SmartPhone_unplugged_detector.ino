@@ -31,9 +31,6 @@ ATTDevice Device(deviceId, clientId, clientKey);            //create the object 
 char httpServer[] = "api.smartliving.io";                  // HTTP API Server host
 char* mqttServer = "broker.smartliving.io";                   
 
-byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E }; 	  // Adapt to your Arduino MAC Address  
-
-
 int VMotor = 8;                                        // Pin 8 is the vibration motor output pin and it's also used to construct the AssetID
 
 //required for the device
@@ -46,7 +43,15 @@ void setup()
   pinMode(VMotor, OUTPUT);					                  // initialize the digital pin as an output.         
   Serial.begin(9600);							          // init serial link for debugging
   
-  if(Device.Connect(mac, httpServer))					          // connect the device with the IOT platform.
+  byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E }; 	  // Adapt to your Arduino MAC Address  
+  if (Ethernet.begin(mac) == 0) 				                // Initialize the Ethernet connection:
+  {	
+    Serial.println(F("DHCP failed,end"));
+    while(true);							        //we failed to connect, halt execution here. 
+  }
+  delay(1000);							                //give the Ethernet shield a second to initialize:
+  
+  if(Device.Connect(&ethClient, httpServer))					          // connect the device with the IOT platform.
   {
     Device.AddAsset(VMotor, "Alerter", "Vibration Motor", true, "bool");
     Device.Subscribe(pubSub);						        // make certain that we can receive message from the iot platform (activate mqtt)

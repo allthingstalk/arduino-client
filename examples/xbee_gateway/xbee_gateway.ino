@@ -1,7 +1,6 @@
 #include <Ethernet.h>					//for the pub/sub client
 #include <PubSubClient.h>				//sends data to the IOT platform
 
-
 #include <SPI.h>                        //required to have support for signed/unsigned long type.
 #include <XBee.h>
 #include <allthingstalk_arduino_gateway_lib.h>			//routines for working with the iot platform
@@ -19,15 +18,14 @@
   - in callback: send the value to the xbee-device when an actuator value is sent from the IOT platform to the gateway.
 */
 
-byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x4B }; 	    // Adapt to your Arduino MAC Address  
-
 //IOT stuff
-char clientId[] = "Your client id comes here"; 
-char clientKey[] = "Your client key comes here";
+char clientId[] = "YOUR_CLIENT_ID_HERE";
+char clientKey[] = "YOUR_CLIENT_KEY_HERE";
 
-ATTGateway Gateway(clientId, clientKey);                        //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "api.smartliving.io";                      // HTTP API Server host
-char* mqttServer = "broker.smartliving.io";                     // MQTT(ATT1) Server 
+ATTGateway Gateway("xbee_", clientId, clientKey);                       //create the object that provides the connection to the cloud to manager the device.
+char httpServer[] = "api.smartliving.io";                      			// HTTP API Server host
+char* mqttServer = "broker.smartliving.io";                     		// MQTT(ATT1) Server 
+
 void callback(char* topic, byte* payload, unsigned int length);
 EthernetClient ethClient;
 PubSubClient pubSub(mqttServer, 1883, callback, ethClient);
@@ -38,7 +36,6 @@ String Sensor2 = "Temp Sensor";
 char Sensor2_Id = '2';
 String Sensor3 = "Light Sensor";
 char Sensor3_Id = '3';
-
 
 // XBEE Stuff
 uint8_t payload[50];
@@ -54,8 +51,16 @@ void setup()
 {
   Serial.begin(9600);                                            // init serial link for debugging
   
+  byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x4B }; 	    // Adapt to your Arduino MAC Address  
+  if (Ethernet.begin(mac) == 0)                             // Initialize the Ethernet connection:
+  { 
+    Serial.println(F("DHCP failed,end"));
+    while(true);                                    		//we failed to connect, halt execution here. 
+  }
+  delay(1000);                                          	//give the Ethernet shield a second to initialize:
+  
   // start the Ethernet connection:
-  if(Gateway.Connect(mac, httpServer))                           // connect the device with the IOT platform.
+  if(Gateway.Connect(&ethClient, httpServer))                           // connect the device with the IOT platform.
     Gateway.Subscribe(pubSub);                                   // make certain that we can receive message from the iot platform (activate mqtt)
   else 
     while(true);                                                 //can't set up the gateway on the cloud, can't continue, so put the app in an ethernal loop so it doesn't do anything else anymore.								
