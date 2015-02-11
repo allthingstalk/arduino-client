@@ -250,7 +250,7 @@ void ATTGateway::Send(String deviceId, char sensorId, String value)
 	
 	char* Mqttstring_buff;
 	{
-		int length = _clientId.length() + deviceId.length() + 30;
+		int length = _clientId.length() + deviceId.length() + (int)log(float(sensorId)) + 30;
 		Mqttstring_buff = new char[length];
 		sprintf(Mqttstring_buff, "client/%s/out/asset/%s%s_%c/state", _clientId.c_str(), _gatewayType.c_str(), deviceId.c_str(), sensorId);      
 		Mqttstring_buff[length-1] = 0;
