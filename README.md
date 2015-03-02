@@ -7,7 +7,7 @@ Check the wiki pages for [how-to's and API documentation](https://github.com/all
 
 ### Installation
   1. Download the source code
-  2. copy the directories in the 'libraries' directory to your arduino libraries directory.
+  2. copy the content of the 'libraries' directory in the zip file to your arduino libraries folder.
   
 ### Instructions
 
