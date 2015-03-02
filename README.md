@@ -12,7 +12,6 @@ Check the wiki pages for [how-to's and API documentation](https://github.com/all
 ### Instructions
 
   1. Setup the Arduino hardware
-    - USB2Serial
     - Grove kit shield
     - Potentiometer to A0
     - Led light to D8
