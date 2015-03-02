@@ -1,7 +1,13 @@
-#include <Ethernet.h>			              //for loading components required by the iot device object.
+#include <Dhcp.h>
+#include <Dns.h>
+#include <Ethernet.h>
+#include <EthernetClient.h>
+#include <EthernetServer.h>
+#include <EthernetUdp.h>
+
 #include <PubSubClient.h>
 
-#include <allthingstalk_arduino_standard_lib.h>       // AllThingstalk IoT Library
+#include <ATT_IOT.h>       // AllThingstalk IoT Library
 #include <SPI.h>                                      // required to have support for signed/unsigned long type.
 
 /*
@@ -81,14 +87,14 @@ void callback(char* topic, byte* payload, unsigned int length)
   }
   int* idOut = NULL;
   {	                                                      //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
-	int topicLength = strlen(topic);
+	int pinNr = Device.GetPinNr(topic, strlen(topic));
 	
 	Serial.print("Payload: ");                            //show some debugging.
 	Serial.println(msgString);
 	Serial.print("topic: ");
 	Serial.println(topic);
 	
-	if (topic[topicLength - 9] == (LED+48))            //warning: the topic will always be lowercase. The id of the actuator to use is near the end of the topic. We can only get actuator commands, so no extra check is required.
+	if (pinNr == LED)  
 	{
 	  if (msgString == "false") {
             digitalWrite(LED, LOW);		     //change the vibration motor status to false

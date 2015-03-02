@@ -1,11 +1,11 @@
 /*
-	allthingstalk_arduino_standard_lib.cpp - SmartLiving.io Arduino library 
+	ATT_IOT.cpp - SmartLiving.io Arduino library 
 */
 
 #define DEBUG					//turns on debugging in the IOT library. comment out this line to save memory.
 
 
-#include "allthingstalk_arduino_standard_lib.h"
+#include "ATT_IOT.h"
 
 #define RETRYDELAY 5000					//the nr of milliseconds that we pause before retrying to create the connection
 #define ETHERNETDELAY 1000		//the nr of milliseconds that we pause to give the ethernet board time to start
@@ -187,6 +187,12 @@ void ATTDevice::MqttSubscribe()
 	#ifdef DEBUG
     Serial.print(F("MQTT Client subscribed"));
 	#endif
+}
+
+//returns the pin nr found in the topic
+int ATTDevice::GetPinNr(char* topic, int topicLength)
+{
+	return topic[topicLength - 9] - 48;
 }
 
 void ATTDevice::GetHTTPResult()

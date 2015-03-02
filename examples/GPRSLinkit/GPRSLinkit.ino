@@ -1,6 +1,10 @@
-#include <LTask.h>
-#include <LWiFi.h>
-#include <LWiFiClient.h>
+#include <LGPRS.h>
+#include <LGPRSClient.h>
+#include <LGPRSServer.h>
+#include <LGPRSUdp.h>
+
+//#include <LTask.h>
+
 
 #include <PubSubClient.h>
 #include <ATT_IOT.h>
@@ -13,7 +17,7 @@
     - Grove kit shield
     - Potentiometer to A0
     - Led light to D8
-  2. Add 'allthingstalk_arduino_standard_lib' library to your Arduino Environment. [Try this guide](http://arduino.cc/en/Guide/Libraries)
+  2. Add 'ATT_IOT' library to your Arduino Environment. [Try this guide](http://arduino.cc/en/Guide/Libraries)
   3. Fill in the missing strings (deviceId, clientId, clientKey, Wifi details) and optionally change/add the sensor & actuator names, ids, descriptions, types
      For extra actuators, make certain to extend the callback code at the end of the sketch.
   4. Upload the sketch
@@ -26,15 +30,11 @@
   - Make certain that the data type you used to create the asset is the expected data type. Ex, when you define the asset as 'int', don't send strings or boolean values.
 */
 
-#define WIFI_AP "YOUR_WIFI_SSID"                // replace your WiFi AP SSID
-#define WIFI_PASSWORD "YOUR_WIFI_PWD"           // replace your WiFi AP password
-#define WIFI_AUTH LWIFI_WPA                     // choose from LWIFI_OPEN, LWIFI_WPA, or LWIFI_WEP according to your AP
+char deviceId[] = "PTFcFdHlkjuSECMWdDjTyd2";
+char clientId[] = "jb1";
+char clientKey[] = "sa5slr2vhcf";
 
-char deviceId[] = "YOUR_DEVICE_ID_HERE";
-char clientId[] = "YOUR_CLIENT_ID_HERE";
-char clientKey[] = "YOUR_CLIENT_KEY_HERE";
-
-//Warning the LinkIt maps some pin numbers differently compared to the arduino. LinkIt pin numbers can be 
+//Warning the LinkIt maps pin numbers differently compared to the arduino. LinkIt pin numbers can be 
 //bigger then 9, which doesn't work well with the AllthingsTalk library: it expects asset id's between 0 and 9, 
 //the solution: define a different asset id for each pin, which is in the correct range.
 int a0=A0;
@@ -43,26 +43,26 @@ int a1=8;
 int a1Id=1;
 
 ATTDevice Device(deviceId, clientId, clientKey);                //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "api.smartliving.io";                       // HTTP API Server host                  
-char mqttServer[] = "broker.smartliving.io";                    // MQTT(ATT1) Server IP Address
+char httpServer[] = "api.smartliving.io";                   // HTTP API Server host                  
+char mqttServer[] = "broker.smartliving.io";		    // MQTT Server Address
 
 //required for the device
 void callback(char* topic, byte* payload, unsigned int length);
-LWiFiClient c;
+LGPRSClient c;
 PubSubClient pubSub(mqttServer, 1883, callback, c);
 
 void setup()
 {
   Serial.begin(115200);
   while(!Serial);                                                       //for the linkit, we need to wait until the serial monitor is initialized correclty, if we don't do this, we don't get to see the logging.
-  pinMode(a1, OUTPUT);
-
   Serial.println("starting");
-  LWiFi.begin();                                                        // Initializes LinkIt ONE WiFi module   
-  Serial.print("Connecting to WiFi AP: ");
-  Serial.println(WIFI_AP);
-  while (0 == LWiFi.connect(WIFI_AP, LWiFiLoginInfo(WIFI_AUTH, WIFI_PASSWORD)))
+  pinMode(a1, OUTPUT);
+  
+  while(!LGPRS.attachGPRS("YourAPN", "",""))
+  {
+    Serial.println("connecting");
     delay(1000);
+  }
   Serial.println("connected");
 
   if(Device.Connect(&c, httpServer))                                    // connect the device with the IOT platform.
@@ -73,6 +73,7 @@ void setup()
   }
   else 
     while(true); 
+  digitalWrite(a1, LOW);
 }
 
 unsigned long time;                                                      //only send every x amount of time.

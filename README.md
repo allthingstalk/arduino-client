@@ -1,27 +1,28 @@
 arduino-client
 ==============
 
-A library for arduinos that provides access to the ATT IOT platform.
+This is a library for the AllThingsTalk ‘Internet of Things’ platform.  
 
-Check the wiki pages for [how-to's and API documentation](https://github.com/allthingstalk/arduino-client/wiki).
+It works with the official [Arduino Ethernet board](http://arduino.cc/en/Main/ArduinoBoardEthernet).  
+Other boards based on Arduino might also work. In the Examples folder you can find some sample sketches which support the [Linkit ONE](http://www.seeedstudio.com/depot/LinkIt-ONE-p-2017.html) board.
+
+
+
 
 ### Installation
-  1. Download the source code
-  2. copy the content of the 'libraries' directory in the zip file to your arduino libraries folder.
+  1. Download the [source code](https://github.com/allthingstalk/arduino-client/archive/master.zip)
+  2. copy the content of the 'libraries' directory in the zip file to your arduino libraries folder (usually found at &lt;arduinosketchfolder>/libraries).
   
-### Instructions
+### Example sketches
 
-  1. Setup the Arduino hardware
-    - Grove kit shield
-    - Potentiometer to A0
-    - Led light to D8
-  2. Create the device in the IOT platform.
-  3. Open the 'iot_demo' template sketch.
-  3. fill in the missing strings: replace deviceId, clientId, clientKey, mac. Optionally change/add the sensor & actuator names, pins, descriptions, types. 
-  4. Upload the sketch
+The library includes a number of example sketches which demonstrate how assets of different types can be used with the AllThingsTalk ‘Internet of Things’ platform and also includes examples to be used with other boards.
 
-### Extra info
+### Experiments
 
-- For extra actuators, make certain to extend the callback code at the end of the sketch. The pins for the actuators & sensors that you have to specify here are the same pin values that you use in the sketch to initialize the sensors/actuators.  
-- The mac address can be found on your arduino board. 
-- DeviceId, clientId & clientKey can be found on the IOT platform. 
+The download also includes a number of experiments to get you started with more features of  the AllThingsTalk ‘Internet of Things’ platform such as automation and notifications.
+
+ 
+
+Want more information ?  
+Check out the [documentation](http://docs.smartliving.io/API/Arduino).
+

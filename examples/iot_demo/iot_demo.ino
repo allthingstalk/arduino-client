@@ -1,7 +1,13 @@
-#include <Ethernet.h>           //for loading components required by the iot device object.
+#include <Dhcp.h>
+#include <Dns.h>
+#include <Ethernet.h>
+#include <EthernetClient.h>
+#include <EthernetServer.h>
+#include <EthernetUdp.h>
+
 #include <PubSubClient.h>
 
-#include <allthingstalk_arduino_standard_lib.h>
+#include <ATT_IOT.h>
 #include <SPI.h>                //required to have support for signed/unsigned long type.
 
 /*
@@ -98,14 +104,14 @@ void callback(char* topic, byte* payload, unsigned int length)
   }
   int* idOut = NULL;
   {                                                     //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
-    int topicLength = strlen(topic);
+    int pinNr = Device.GetPinNr(topic, strlen(topic));
     
     Serial.print("Payload: ");                          //show some debugging.
     Serial.println(msgString);
     Serial.print("topic: ");
     Serial.println(topic);
     
-    if (topic[topicLength - 9] == (ledPin + 48))        //warning: only a max of 10 actuators supported (0-9). +48 is used to convert from integer to the ascii value of the number (the topic contains the ascii number, not an integer).
+    if (pinNr == ledPin)       
     {
       if (msgString == "false") {
         digitalWrite(ledPin, LOW);                      //change the led    

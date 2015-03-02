@@ -4,6 +4,7 @@ Released into the public domain.
 
 Original author: Peter Leemans (2014)
 2/5/2014	Jan Bogaerts	Convert to library
+2/3/2015	Jan Bogaerts 	release 2
 */
 
 #ifndef ATTDevice_h
@@ -13,7 +14,6 @@ Original author: Peter Leemans (2014)
 #include <Client.h>
 #include <PubSubClient.h>
 #include <string.h>
-//#include <Dhcp.h>
 
 //this class represents the ATT cloud platform.
 class ATTDevice
@@ -40,6 +40,9 @@ class ATTDevice
 	
 		//check for any new mqtt messages.
 		void Process();
+		
+		//returns the pin nr found in the topic
+		int GetPinNr(char* topic, int topicLength);
 	private:	
 		char* _serverName;				//stores the name of the http server that we should use.
 		String _deviceId;				//the device id provided by the user.

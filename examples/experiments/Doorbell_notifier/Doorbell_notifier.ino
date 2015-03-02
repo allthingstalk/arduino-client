@@ -1,7 +1,13 @@
-#include <Ethernet.h>			        //for loading components required by the iot device object.
+#include <Dhcp.h>
+#include <Dns.h>
+#include <Ethernet.h>
+#include <EthernetClient.h>
+#include <EthernetServer.h>
+#include <EthernetUdp.h>
+
 #include <PubSubClient.h>
 
-#include <allthingstalk_arduino_standard_lib.h> // SmartLiving for Makers Arduino Library
+#include <ATT_IOT.h> // SmartLiving for Makers Arduino Library
 #include <SPI.h>                                //required to have support for signed/unsigned long type.				
 
 /*
