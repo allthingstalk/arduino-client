@@ -1,9 +1,5 @@
-#include <Dhcp.h>
-#include <Dns.h>
 #include <Ethernet.h>
 #include <EthernetClient.h>
-#include <EthernetServer.h>
-#include <EthernetUdp.h>
 
 #include <PubSubClient.h>
 #include <ATT_IOT.h>                            //AllThingsTalk IoT library
