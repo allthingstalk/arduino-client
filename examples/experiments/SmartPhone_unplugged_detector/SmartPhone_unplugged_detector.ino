@@ -55,7 +55,7 @@ void setup()
   
   if(Device.Connect(&ethClient, httpServer))					          // connect the device with the IOT platform.
   {
-    Device.AddAsset(VMotor, "Alerter", "Vibration Motor", true, "bool");
+    Device.AddAsset(VMotor, "Alerter", "Vibration Motor", true, "boolean");
     Device.Subscribe(pubSub);						        // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 

@@ -57,7 +57,7 @@ void setup()
   
   if(Device.Connect(&ethClient, httpServer))					         // connect the device with the IOT platform.
   {
-    Device.AddAsset(doorbell, "Doorbell", "Doorbell button", false, "bool");         // Create the asset for your device
+    Device.AddAsset(doorbell, "Doorbell", "Doorbell button", false, "boolean");         // Create the asset for your device
     Device.Subscribe(pubSub);						         // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 

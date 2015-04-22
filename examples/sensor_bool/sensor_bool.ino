@@ -64,7 +64,7 @@ void setup()
   
   if(Device.Connect(&ethClient, httpServer))					            // connect the device with the IOT platform.
   {
-    Device.AddAsset(DigitalSensor, "YourDigitalSensorname", "Digital Sensor Description", false, "bool ");   // Create the Digital Sensor asset for your device
+    Device.AddAsset(DigitalSensor, "YourDigitalSensorname", "Digital Sensor Description", false, "boolean");   // Create the Digital Sensor asset for your device
     Device.Subscribe(pubSub);						            // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 

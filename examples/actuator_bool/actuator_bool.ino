@@ -64,7 +64,7 @@ void setup()
   delay(1000);                                          	//give the Ethernet shield a second to initialize:
   if(Device.Connect(&ethClient, httpServer))					            // connect the device with the IOT platform.
   {
-    Device.AddAsset(DigitalActuator, "YourDigitalActuatorname", "Digital Actuator Description", true, "bool");   // Create the Digital Actuator asset for your device
+    Device.AddAsset(DigitalActuator, "YourDigitalActuatorname", "Digital Actuator Description", true, "boolean");   // Create the Digital Actuator asset for your device
     Device.Subscribe(pubSub);						            // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 

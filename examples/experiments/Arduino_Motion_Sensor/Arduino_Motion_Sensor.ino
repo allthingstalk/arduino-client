@@ -61,8 +61,8 @@ void setup()
   
   if(Device.Connect(&ethClient, httpServer))					         // connect the device with the IOT platform.
   {
-    Device.AddAsset(PIR_MOTION_SENSOR, "PIR", "Motion Sensor", false, "bool");   // Create the asset for your device
-    Device.AddAsset(LED, "LED", "Light Emitting Diode", true, "bool");           // Create the asset for your device
+    Device.AddAsset(PIR_MOTION_SENSOR, "PIR", "Motion Sensor", false, "boolean");   // Create the asset for your device
+    Device.AddAsset(LED, "LED", "Light Emitting Diode", true, "boolean");           // Create the asset for your device
     Device.Subscribe(pubSub);						         // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 

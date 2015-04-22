@@ -67,8 +67,8 @@ void setup()
 
   if(Device.Connect(&c, httpServer))                                    // connect the device with the IOT platform.
   {
-    Device.AddAsset(a0Id, "knob", "rotary switch",false, "int");
-    Device.AddAsset(a1Id, "led", "light emitting diode", true, "bool");
+    Device.AddAsset(a0Id, "knob", "rotary switch",false, "integer");
+    Device.AddAsset(a1Id, "led", "light emitting diode", true, "boolean");
     Device.Subscribe(pubSub);                                           // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 

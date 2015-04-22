@@ -56,7 +56,7 @@ void setup()
   delay(1000);							                //give the Ethernet shield a second to initialize:  
   if(Device.Connect(&ethClient, httpServer))					         // connect the device with the IOT platform.
   {
-    Device.AddAsset(lichtsensor, "Lightsensor", "light sensor", false, "int");         // Create the asset for your device
+    Device.AddAsset(lichtsensor, "Lightsensor", "light sensor", false, "integer");         // Create the asset for your device
     Device.Subscribe(pubSub);						         // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 

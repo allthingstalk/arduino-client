@@ -66,7 +66,7 @@ void setup()
   
   if(Device.Connect(&ethClient, httpServer))					            // connect the device with the IOT platform.
   {
-    Device.AddAsset(AnalogActuator, "YourAnalogActuatorname", "Analog Actuator Description", true, "int");   // Create the Digital Actuator asset for your device
+    Device.AddAsset(AnalogActuator, "YourAnalogActuatorname", "Analog Actuator Description", true, "integer");   // Create the Digital Actuator asset for your device
     Device.Subscribe(pubSub);						            // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 

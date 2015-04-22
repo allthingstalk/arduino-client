@@ -65,7 +65,7 @@ void setup()
   
   if(Device.Connect(&ethClient, httpServer))					            // connect the device with the IOT platform.
   {
-    Device.AddAsset(AnalogSensor, "YourAnalogSensorname", "Analog Sensor Description", false, "int");        // Create the Analog Sensor asset for your device
+    Device.AddAsset(AnalogSensor, "YourAnalogSensorname", "Analog Sensor Description", false, "integer");        // Create the Analog Sensor asset for your device
     Device.Subscribe(pubSub);						            // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 
