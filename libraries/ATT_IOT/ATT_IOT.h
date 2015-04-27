@@ -59,6 +59,9 @@ class ATTDevice
 		
 		//read all the data from the ethernet card and display on the debug screen.
 		void GetHTTPResult();
+		
+		//builds the content that has to be sent to the cloud using mqtt (either a csv value or a json string)
+		char* BuildContent(String value);
 };
 
 #endif

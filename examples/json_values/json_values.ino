@@ -65,7 +65,7 @@ void setup()
   
   if(Device.Connect(&ethClient, httpServer))					            // connect the device with the IOT platform.
   {
-    Device.AddAsset(AnalogSensor, "YourAnalogSensorname", "Analog Sensor Description", false, "{\"type\": \"integer\", \"unit\":\"watt\",\"minimum\":0,\"maximum\":0}");        // Create the Analog Sensor asset for your device
+    Device.AddAsset(AnalogSensor, "YourAnalogSensorname", "Analog Sensor Description", false, "{\"type\": \"object\",\"properties\": {\"latitude\": { \"type\": \"number\" },\"longitude\": { \"type\": \"number\" }}}");        // Create the Analog Sensor asset for your device
     Device.Subscribe(pubSub);						            // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 
@@ -79,8 +79,12 @@ void loop()
   if (curTime > (time + 3000)) 							// publish readings every 3 seconds
   {
     unsigned int AnalogSensorRead = analogRead(AnalogSensor);			// read from Analog Sensor (photocell)
-    Device.Send(String(AnalogSensorRead), AnalogSensor);                        // Send Analog Sensor data to smartliving.io
-    
+	
+	int length = 40;
+	char* message_buff = new char[length];
+	sprintf(message_buff, "{\"latitude\":%i,\"longitude\":0}\0", AnalogSensorRead);
+    Device.Send(String(message_buff), AnalogSensor);                        // Send Analog Sensor data to smartliving.io
+    delete message_buff;
     time = curTime;
   }
   Device.Process(); 
