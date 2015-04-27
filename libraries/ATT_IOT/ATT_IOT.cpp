@@ -71,7 +71,7 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 			length += 8;
 		else 
 			length += 6;
-		if(type[0] == "{")
+		if(type[0] == '{')
 			 length += 64;
 		 else
 			 length += 77;
@@ -88,7 +88,7 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 		_client->print(F("actuator"));
 	else 
 		_client->print(F("sensor"));
-	if(type[0] == "{"{
+	if(type[0] == '{'){
 		_client->print(F("\",\"profile\": "));
 		_client->print(type);
 	}
@@ -151,6 +151,26 @@ void ATTDevice::Process()
 	_mqttclient->loop();
 }
 
+//builds the content that has to be sent to the cloud using mqtt (either a csv value or a json string)
+char* ATTDevice::BuildContent(String value)
+{
+	char* message_buff;
+	int length;
+	if(value[0] == '[' || value[0] == '{'){
+		length = value.length() + 16;
+		message_buff = new char[length];
+		sprintf(message_buff, "{\"value\":%s}", value.c_str());
+	}
+	else{
+		length = value.length() + 3;
+		message_buff = new char[length];
+		sprintf(message_buff, "0|%s", value.c_str());
+	}
+	message_buff[length-1] = 0;
+	return message_buff;
+}
+
+
 //send a data value to the cloud server for the sensor with the specified id.
 void ATTDevice::Send(String value, int id)
 {
@@ -160,13 +180,7 @@ void ATTDevice::Send(String value, int id)
 		MqttConnect();
 	}
 
-	char* message_buff;
-	{																					//put in a sub block so 'pubstring' can be freed asap.
-		int length = value.length() + 3;
-		message_buff = new char[length];
-		sprintf(message_buff, "0|%s", value.c_str());
-		message_buff[length-1] = 0;
-	}
+	char* message_buff = BuildContent(value);
 	
 	#ifdef DEBUG																					//don't need to write all of this if not debugging.
 	Serial.print(F("Publish to ")); Serial.print(id); Serial.print(" : "); 
