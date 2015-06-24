@@ -54,7 +54,8 @@ PubSubClient pubSub(mqttServer, 1883, callback, c);
 void setup()
 {
   Serial.begin(115200);
-  while(!Serial);                                                       //for the linkit, we need to wait until the serial monitor is initialized correclty, if we don't do this, we don't get to see the logging.
+  while(!Serial);                                     //for the linkit, we need to wait until the serial monitor is initialized correctly, if we don't do this, we don't get to see the logging.
+                                                      //Warning for battery and mains power usage, comment out the above line, other wise the setup() will continue to wait for the Serial to become available
   pinMode(a1, OUTPUT);
 
   Serial.println("starting");
