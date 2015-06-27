@@ -24,5 +24,5 @@ The download also includes a number of experiments to get you started with more 
  
 
 Want more information ?  
-Check out the [documentation](http://docs.smartliving.io/API/Arduino).
+Check out the [documentation](http://docs.smartliving.io/For_Arduino/Library).
 
