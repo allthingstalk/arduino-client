@@ -38,7 +38,7 @@ char clientKey[] = ""; // Your client key comes here;
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
 char httpServer[] = "api.smartliving.io";                   // HTTP API Server host                  
-char mqttServer[] = "broker.smartliving.io";		    // MQTT Server Address
+char mqttServer[] = "broker.smartliving.io";            // MQTT Server Address
 
 
 // Define PIN numbers for assets
@@ -53,26 +53,26 @@ PubSubClient pubSub(mqttServer, 1883, callback, ethClient);
 void setup()
 {
          
-  pinMode(AnalogActuator, OUTPUT);					            // initialize the digital pin as an output.         
-  Serial.begin(9600);							            // init serial link for debugging
+  pinMode(AnalogActuator, OUTPUT);                              // initialize the digital pin as an output.         
+  Serial.begin(9600);                                       // init serial link for debugging
   
   byte mac[] = {0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E};        // Adapt to your Arduino MAC Address  
   if (Ethernet.begin(mac) == 0)                             // Initialize the Ethernet connection:
   { 
     Serial.println(F("DHCP failed,end"));
-    while(true);                                    		//we failed to connect, halt execution here. 
+    while(true);                                            //we failed to connect, halt execution here. 
   }
-  delay(1000);                                          	//give the Ethernet shield a second to initialize:
+  delay(1000);                                              //give the Ethernet shield a second to initialize:
   
-  if(Device.Connect(&ethClient, httpServer))					            // connect the device with the IOT platform.
+  if(Device.Connect(&ethClient, httpServer))                                // connect the device with the IOT platform.
   {
     Device.AddAsset(AnalogActuator, "YourAnalogActuatorname", "Analog Actuator Description", true, "integer");   // Create the Digital Actuator asset for your device
-    Device.Subscribe(pubSub);						            // make certain that we can receive message from the iot platform (activate mqtt)
+    Device.Subscribe(pubSub);                                   // make certain that we can receive message from the iot platform (activate mqtt)
   }
   else 
     while(true);                                                                
 }
-						       
+                               
 void loop()
 {
   Device.Process(); 
@@ -83,33 +83,29 @@ void callback(char* topic, byte* payload, unsigned int length)
 { 
   String msgString; 
   {                                                           //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
-	char message_buff[length + 1];	                      //need to copy over the payload so that we can add a /0 terminator, this can then be wrapped inside a string for easy manipulation
-	strncpy(message_buff, (char*)payload, length);        //copy over the data
-	message_buff[length] = '\0';		              //make certain that it ends with a null			
-		  
-	msgString = String(message_buff);
-	msgString.toLowerCase();			      //to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent)
+    char message_buff[length + 1];                        //need to copy over the payload so that we can add a /0 terminator, this can then be wrapped inside a string for easy manipulation
+    strncpy(message_buff, (char*)payload, length);        //copy over the data
+    message_buff[length] = '\0';                      //make certain that it ends with a null           
+          
+    msgString = String(message_buff);
+    msgString.toLowerCase();                  //to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent)
   }
   int* idOut = NULL;
-  {	                                                      //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
-	int pinNr = Device.GetPinNr(topic, strlen(topic));
-	
-	Serial.print("Payload: ");                            //show some debugging
-	Serial.println(msgString);
-	Serial.print("topic: ");
-	Serial.println(topic);
+  {                                                       //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
+    int pinNr = Device.GetPinNr(topic, strlen(topic));
+    
+    Serial.print("Payload: ");                            //show some debugging
+    Serial.println(msgString);
+    Serial.print("topic: ");
+    Serial.println(topic);
 
-        if (pinNr == AnalogActuator)  
-	{
-	  if (msgString == "false") {
-            digitalWrite(AnalogActuator, LOW);		     //change the actuator status to false
-            idOut = &AnalogActuator;		                        
-	  }
-	  else if (msgString == "true") {
-	    digitalWrite(AnalogActuator, HIGH);              //change the actuator status to true
-            idOut = &AnalogActuator;
-	  }
-	}
+    if (pinNr == AnalogActuator)  
+    {
+        analogWrite(AnalogActuator, msgString.toInt());
+        Serial.print("value: ");
+        Serial.println(msgString.toInt());
+        idOut = &AnalogActuator;
+    }
   }
   if(idOut != NULL)                                           //Let the iot platform know that the operation was succesful
     Device.Send(msgString, *idOut);    
