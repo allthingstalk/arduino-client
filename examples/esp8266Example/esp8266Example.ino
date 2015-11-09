@@ -23,6 +23,8 @@
   4. Upload the sketch
 
   ### Troubleshooting
+  
+  for PIN layout on the NodeMCU, check: https://github.com/esp8266/Arduino/blob/master/doc/boards.md#nodemcu-1-0
 
 
 */
