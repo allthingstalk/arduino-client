@@ -36,8 +36,8 @@ char deviceId[] = ""; // Your device id comes here
 char clientId[] = ""; // Your client id comes here;
 char clientKey[] = ""; // Your client key comes here;
 
-const char* ssid     = "GPE_WLAN2";
-const char* password = "$GP3uRoPE!";
+const char* ssid     = "name of your network";
+const char* password = "pwd for your network";
 
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
@@ -121,11 +121,11 @@ void callback(char* topic, byte* payload, unsigned int length)
       if (pinNr == DigitalActuatorId)  
       {
         if (msgString == "false") {
-            digitalWrite(DigitalActuator, HIGH);        //change the actuator status to false
+            digitalWrite(DigitalActuator, HIGH);        //change the actuator status to false -> the pin appears to be inversed, so set high
             idOut = &DigitalActuatorId;                           
         }
         else if (msgString == "true") {
-            digitalWrite(DigitalActuator, LOW);              //change the actuator status to true
+            digitalWrite(DigitalActuator, LOW);              //change the actuator status to true  -> the pin appears to be inversed, so set high
             idOut = &DigitalActuatorId;
         }
       }  
