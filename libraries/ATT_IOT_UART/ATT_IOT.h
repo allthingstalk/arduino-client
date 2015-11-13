@@ -18,9 +18,13 @@ class ATTDevice
 {
 	public:
 		//create the object
-		ATTDevice();
+		ATTDevice(Stream* stream);
 		
-		/*Initialize the library*/
+		/*Initialize the library
+		deviceId: the id of the device, as found on the website
+		clientId: the client id, found on the website
+		clientkey: secret key for your device, found on website.
+		*/
 		void Init(String deviceId, String clientId, String clientKey);
 		
 		/*connect with the http server (call first)
@@ -45,6 +49,10 @@ class ATTDevice
 		//returns the pin nr found in the topic
 		int GetPinNr(char* topic, int topicLength);
 	private:	
+		Stream* _stream;
+		
+		void writeCommand(const char* command, String& param1, String& param2, String& param3);
+		bool waitForOk();
 };
 
 #endif
