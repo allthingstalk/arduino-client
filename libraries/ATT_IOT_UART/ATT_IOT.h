@@ -13,6 +13,9 @@ Original author: Peter Leemans (2014)
 #include "Arduino.h"
 #include <string.h>
 
+#define DEFAULT_INPUT_BUFFER_SIZE 96
+#define DEFAULT_TIMEOUT 120
+
 //this class represents the ATT cloud platform.
 class ATTDevice
 {
@@ -50,9 +53,14 @@ class ATTDevice
 		int GetPinNr(char* topic, int topicLength);
 	private:	
 		Stream* _stream;
+		char inputBuffer[DEFAULT_INPUT_BUFFER_SIZE + 1];
 		
 		void writeCommand(const char* command, String& param1, String& param2, String& param3);
 		bool waitForOk();
+		void sendParam(String& param);
+		bool expectString(const char* str, unsigned short timeout = DEFAULT_TIMEOUT);
+		unsigned short readLn(char* buffer, unsigned short size, unsigned short start);
+		unsigned short readLn() { return readLn(this->inputBuffer, DEFAULT_INPUT_BUFFER_SIZE); };
 };
 
 #endif

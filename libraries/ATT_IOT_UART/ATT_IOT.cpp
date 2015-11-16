@@ -28,10 +28,79 @@ ATTDevice::ATTDevice(Stream* stream)
 
 void ATTDevice::writeCommand(const char* command, String& param1, String& param2, String& param3)
 {
+	_stream->print(command);
+	_stream->print(";");
+	sendParam(param1);
+	_stream->print(";");
+	sendParam(param2);
+	_stream->print(";");
+	sendParam(param3);
+	_stream->println();
+	
+}
+
+void ATTDevice::sendParam(String& param)
+{
+	for(int i = 0; i < param.length(); i++)
+	{
+		char toSend = param.charAt(i);
+		if(toSend == ';')
+			_stream->print("\;");
+		else
+			_stream->print(toSend);
+	}
 }
 
 bool ATTDevice::waitForOk()
 {
+}
+
+// waits for string, if str is found returns ok, if other string is found returns false, if timeout returns false
+bool ATTDevice::expectString(const char* str, unsigned short timeout)
+{
+	#ifdef FULLDEBUG
+	Serial.print("expecting ");
+	Serial.println(str);
+	#endif
+
+	unsigned long start = millis();
+	while (millis() < start + timeout)
+	{
+		#ifdef FULLDEBUG	
+		Serial.print(".");
+		#endif
+
+		if (readLn() > 0)
+		{
+			#ifdef FULLDEBUG		
+			Serial.print("(");
+			Serial.print(this->inputBuffer);
+			Serial.print(")");
+			#endif
+
+			// TODO make more strict?
+			if (strstr(this->inputBuffer, str) != NULL)
+			{
+				#ifdef FULLDEBUG
+				Serial.println(" found a match!");
+				#endif
+				return true;
+			}
+			return false;
+		}
+	}
+	return false;
+}
+
+unsigned short ATTDevice::readLn(char* buffer, unsigned short size, unsigned short start)
+{
+	int len = _stream->readBytesUntil('\n', buffer + start, size);
+	if(len > 0)
+		this->inputBuffer[start + len - 1] = 0; // bytes until \n always end with \r, so get rid of it (-1)
+	else
+		this->inputBuffer[start] = 0;
+
+	return len;
 }
 
 //connect with the http server
@@ -58,7 +127,7 @@ bool ATTDevice::Connect(char httpServer[])
 	Serial.println(F("Connecting"));
 	#endif
 
-	writeCommand(CMD_CONNECT, deviceId, clientId, clientKey);
+	writeCommand(CMD_CONNECT, String(httpServer));
 	bool res = waitForOk();
 	#ifdef DEBUG
 	if(res == false){
@@ -67,7 +136,6 @@ bool ATTDevice::Connect(char httpServer[])
 	}
 	else
 	{
-		#ifdef DEBUG
 		Serial.print(HTTPSERVTEXT);
 		Serial.println(SUCCESTXT);
 		delay(ETHERNETDELAY);							// another small delay: sometimes the card is not yet ready to send the asset info.
@@ -79,55 +147,25 @@ bool ATTDevice::Connect(char httpServer[])
 //create or update the specified asset.
 void ATTDevice::AddAsset(int id, String name, String description, bool isActuator, String type)
 {
-    // Make a HTTP request:
-	_client->println("PUT /asset/" + _deviceId +  (char)(id + 48) + " HTTP/1.1");
-    _client->print(F("Host: "));
-    _client->println(_serverName);
-    _client->println(F("Content-Type: application/json"));
-    _client->print(F("Auth-ClientKey: "));_client->println(_clientKey);
-    _client->print(F("Auth-ClientId: "));_client->println(_clientId); 
-	
-	_client->print(F("Content-Length: "));
-	{																					//make every mem op local, so it is unloaded asap
-		int length = name.length() + description.length() + type.length() + _deviceId.length();
-		if(isActuator) 
-			length += 8;
-		else 
-			length += 6;
-		if(type[0] == '{')
-			 length += 64;
-		 else
-			 length += 77;
-		_client->println(length);
+    #ifdef DEBUG
+	Serial.println(F("Connecting"));
+	#endif
+
+	writeCommand(CMD_ADDASSET, String(id), name, description, String(isActuator), type);
+	bool res = waitForOk();
+	#ifdef DEBUG
+	if(res == false){
+		Serial.print(HTTPSERVTEXT);
+		Serial.println(FAILED_RETRY);
 	}
-    _client->println();
-    
-	_client->print(F("{\"name\":\"")); 
-	_client->print(name);
-	_client->print(F("\",\"description\":\""));
-	_client->print(description);
-	_client->print(F("\",\"is\":\""));
-	if(isActuator) 
-		_client->print(F("actuator"));
-	else 
-		_client->print(F("sensor"));
-	if(type[0] == '{'){
-		_client->print(F("\",\"profile\": "));
-		_client->print(type);
+	else
+	{
+		Serial.print(HTTPSERVTEXT);
+		Serial.println(SUCCESTXT);
+		delay(ETHERNETDELAY);							// another small delay: sometimes the card is not yet ready to send the asset info.
 	}
-	else{
-		_client->print(F("\",\"profile\": { \"type\":\""));
-		_client->print(type);
-		_client->print(F("\" }"));
-	}
-	_client->print(F(", \"deviceId\":\""));
-	_client->print(_deviceId);
-	_client->print(F("\" }"));
-	_client->println();
-    _client->println();
- 
-    delay(ETHERNETDELAY);
-	GetHTTPResult();			//get the response from the server and show it.
+	#endif
+	return res;
 }
 
 //connect with the http server and broker
@@ -243,16 +281,4 @@ int ATTDevice::GetPinNr(char* topic, int topicLength)
 	return topic[topicLength - 9] - 48;
 }
 
-void ATTDevice::GetHTTPResult()
-{
-	// If there's incoming data from the net connection, send it out the serial port
-	// This is for debugging purposes only
-	if(_client->available()){
-		while (_client->available()) {
-			char c = _client->read();
-			Serial.print(c);
-		}
-		Serial.println();
-	}
-}
 
