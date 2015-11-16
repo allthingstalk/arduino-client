@@ -176,7 +176,9 @@ void ATTDevice::Send(String value, int id)
 {
 	if(_mqttclient->connected() == false)
 	{
+		#ifdef DEBUG	
 		Serial.println(F("Lost broker connection,restarting")); 
+		#endif
 		MqttConnect();
 	}
 
@@ -184,8 +186,8 @@ void ATTDevice::Send(String value, int id)
 	
 	#ifdef DEBUG																					//don't need to write all of this if not debugging.
 	Serial.print(F("Publish to ")); Serial.print(id); Serial.print(" : "); 
+	Serial.println(message_buff);																
 	#endif
-	Serial.println(message_buff);																	//this value is still useful and generated anyway, so no extra cost.
 	
 	char* Mqttstring_buff;
 	{
@@ -227,9 +229,13 @@ void ATTDevice::GetHTTPResult()
 	if(_client->available()){
 		while (_client->available()) {
 			char c = _client->read();
+			#ifdef DEBUG
 			Serial.print(c);
+			#endif
 		}
+		#ifdef DEBUG
 		Serial.println();
+		#endif
 	}
 }
 

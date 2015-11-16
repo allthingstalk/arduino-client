@@ -5,7 +5,7 @@
 #define DEBUG					//turns on debugging in the IOT library. comment out this line to save memory.
 
 
-#include "ATT_IOT.h"
+#include "ATT_IOT_ART.h"
 #include "SerialCommands.h"
 
 #define RETRYDELAY 5000					//the nr of milliseconds that we pause before retrying to create the connection
@@ -36,7 +36,40 @@ void ATTDevice::writeCommand(const char* command, String& param1, String& param2
 	_stream->print(";");
 	sendParam(param3);
 	_stream->println();
-	
+}
+
+void ATTDevice::writeCommand(const char* command, String& param1, String& param2)
+{
+	_stream->print(command);
+	_stream->print(";");
+	sendParam(param1);
+	_stream->print(";");
+	sendParam(param2);
+	_stream->println();
+}
+
+void ATTDevice::writeCommand(const char* command, String& param1)
+{
+	_stream->print(command);
+	_stream->print(";");
+	sendParam(param1);
+	_stream->println();
+}
+
+void ATTDevice::writeCommand(const char* command, String& param1, String& param2, String& param3, String& param4, String& param5)
+{
+	_stream->print(command);
+	_stream->print(";");
+	sendParam(param1);
+	_stream->print(";");
+	sendParam(param2);
+	_stream->print(";");
+	sendParam(param3);
+	_stream->print(";");
+	sendParam(param4);
+	_stream->print(";");
+	sendParam(param5);
+	_stream->println();
 }
 
 void ATTDevice::sendParam(String& param)
@@ -51,28 +84,29 @@ void ATTDevice::sendParam(String& param)
 	}
 }
 
-bool ATTDevice::waitForOk()
+bool ATTDevice::waitForOk(unsigned short timeout)
 {
+	return expectString(STR_RESULT_OK, timeout);
 }
 
 // waits for string, if str is found returns ok, if other string is found returns false, if timeout returns false
 bool ATTDevice::expectString(const char* str, unsigned short timeout)
 {
-	#ifdef FULLDEBUG
+	#ifdef DEBUG
 	Serial.print("expecting ");
 	Serial.println(str);
 	#endif
 
 	unsigned long start = millis();
-	while (millis() < start + timeout)
+	while (timeout == 0 || millis() < start + timeout)			//if timeout = 0, we wait indefinetly
 	{
-		#ifdef FULLDEBUG	
+		#ifdef DEBUG	
 		Serial.print(".");
 		#endif
 
 		if (readLn() > 0)
 		{
-			#ifdef FULLDEBUG		
+			#ifdef DEBUG		
 			Serial.print("(");
 			Serial.print(this->inputBuffer);
 			Serial.print(")");
@@ -81,7 +115,7 @@ bool ATTDevice::expectString(const char* str, unsigned short timeout)
 			// TODO make more strict?
 			if (strstr(this->inputBuffer, str) != NULL)
 			{
-				#ifdef FULLDEBUG
+				#ifdef DEBUG
 				Serial.println(" found a match!");
 				#endif
 				return true;
@@ -120,6 +154,22 @@ bool ATTDevice::Init(String deviceId, String clientId, String clientKey)
 	return res;
 }
 
+/*Start up the wifi network*/
+void ATTDevice::StartWifi(String& ssid, String& pwd)
+{
+	#ifdef DEBUG
+	Serial.println(F("starting wifi"));
+	#endif
+	writeCommand(CMD_WIFI, ssid, pwd);
+	bool res = waitForOk(0);	//we wait indefinitely
+	#ifdef DEBUG
+	if(res == false)
+		Serial.println("failed to start wifi, retrying...");
+	else
+		Serial.println("wifi started")
+	#endif
+}
+
 //connect with the http server
 bool ATTDevice::Connect(char httpServer[])
 {
@@ -145,7 +195,7 @@ bool ATTDevice::Connect(char httpServer[])
 }
 
 //create or update the specified asset.
-void ATTDevice::AddAsset(int id, String name, String description, bool isActuator, String type)
+bool ATTDevice::AddAsset(int id, String name, String description, bool isActuator, String type)
 {
     #ifdef DEBUG
 	Serial.println(F("Connecting"));
@@ -154,131 +204,84 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 	writeCommand(CMD_ADDASSET, String(id), name, description, String(isActuator), type);
 	bool res = waitForOk();
 	#ifdef DEBUG
-	if(res == false){
-		Serial.print(HTTPSERVTEXT);
-		Serial.println(FAILED_RETRY);
-	}
+	if(res == false)
+		Serial.println("Failed to add asset");
 	else
-	{
-		Serial.print(HTTPSERVTEXT);
-		Serial.println(SUCCESTXT);
-		delay(ETHERNETDELAY);							// another small delay: sometimes the card is not yet ready to send the asset info.
-	}
+		Serial.println("asset added");
 	#endif
 	return res;
 }
 
-//connect with the http server and broker
-void ATTDevice::Subscribe(PubSubClient& mqttclient)
+//connect with the broker
+void ATTDevice::Subscribe(char broker[], mqttCallback callback)
 {
-	_mqttclient = &mqttclient;	
-	_serverName = NULL;					//no longer need this reference.
+	_callback = callback
 	#ifdef DEBUG
-	Serial.println(F("Stopping HTTP"));
+	Serial.println(F("Stopping HTTP, starting mqtt"));
 	#endif
-	_client->flush();
-	_client->stop();
-	_client = NULL;
-	MqttConnect();
-}
-
-//tries to create a connection with the mqtt broker. also used to try and reconnect.
-void ATTDevice::MqttConnect()
-{
-	char mqttId[23]; // Or something long enough to hold the longest file name you will ever use.
-	int length = _deviceId.length();
-	length = length > 22 ? 22 : length;
-    _deviceId.toCharArray(mqttId, length);
-	mqttId[length] = 0;
-	String brokerId = _clientId + ":" + _clientId;
-	while (!_mqttclient->connect(mqttId, (char*)brokerId.c_str(), (char*)_clientKey.c_str())) 
-	{
+	bool res = false;
+	while(!res){
+		writeCommand(CMD_SUBSCRIBE, String(broker));
+		res = waitForOk();
 		#ifdef DEBUG
-		Serial.print(MQTTSERVTEXT);
-		Serial.println(FAILED_RETRY);
+		if(res == false)
+			Serial.print(MQTTSERVTEXT);
+			Serial.println(FAILED_RETRY);
+		else
+			Serial.print(MQTTSERVTEXT);
+			Serial.println(SUCCESTXT)
 		#endif
-		delay(RETRYDELAY);
 	}
-	#ifdef DEBUG
-	Serial.print(MQTTSERVTEXT);
-	Serial.println(SUCCESTXT);
-	#endif
-	MqttSubscribe();
 }
 
 //check for any new mqtt messages.
 void ATTDevice::Process()
 {
-	_mqttclient->loop();
-}
+	_stream->println(CMD_RECEIVE);
+	unsigned long start = millis();
+	while (millis() < start + DEFAULT_TIMEOUT)
+	{
+		if (readLn() > 0)
+		{
+			#ifdef DEBUG		
+			Serial.print("received: ");
+			Serial.println(this->inputBuffer);
+			#endif
 
-//builds the content that has to be sent to the cloud using mqtt (either a csv value or a json string)
-char* ATTDevice::BuildContent(String value)
-{
-	char* message_buff;
-	int length;
-	if(value[0] == '[' || value[0] == '{'){
-		length = value.length() + 16;
-		message_buff = new char[length];
-		sprintf(message_buff, "{\"value\":%s}", value.c_str());
-	}
-	else{
-		length = value.length() + 3;
-		message_buff = new char[length];
-		sprintf(message_buff, "0|%s", value.c_str());
-	}
-	message_buff[length-1] = 0;
-	return message_buff;
+			if (strstr(this->inputBuffer, STR_RESULT_OK) != NULL) return;			//we received 'ok', so nothing to process
+			else{
+				// Split the command in two values
+				char* separator = strchr(this->inputBuffer, ';');
+				*separator = 0;
+				int pin = atoi(this->inputBuffer);
+				++separator;
+				String value = String(separator);
+				_callback(pin, value);
+				return;
+			}
+		}
 }
-
 
 //send a data value to the cloud server for the sensor with the specified id.
 void ATTDevice::Send(String value, int id)
 {
-	if(_mqttclient->connected() == false)
-	{
-		Serial.println(F("Lost broker connection,restarting")); 
-		MqttConnect();
-	}
-
-	char* message_buff = BuildContent(value);
 	
 	#ifdef DEBUG																					//don't need to write all of this if not debugging.
-	Serial.print(F("Publish to ")); Serial.print(id); Serial.print(" : "); 
+	Serial.print(F("Publish to ")); 
+	Serial.print(id); 
+	Serial.print(": "); 
+	Serial.println(value);																	//this value is still useful and generated anyway, so no extra cost.
 	#endif
-	Serial.println(message_buff);																	//this value is still useful and generated anyway, so no extra cost.
 	
-	char* Mqttstring_buff;
-	{
-		int length = _clientId.length() + _deviceId.length() + 26;
-		Mqttstring_buff = new char[length];
-		sprintf(Mqttstring_buff, "client/%s/out/asset/%s%c/state", _clientId.c_str(), _deviceId.c_str(), (char)(id + 48));      
-		Mqttstring_buff[length-1] = 0;
-	}
-	_mqttclient->publish(Mqttstring_buff, message_buff);
-	delay(100);													//give some time to the ethernet shield so it can process everything.       
-	delete(message_buff);
-	delete(Mqttstring_buff);
-}
-
-
-//subscribe to the mqtt topic so we can receive data from the server.
-void ATTDevice::MqttSubscribe()
-{
-	String MqttString = "client/" + _clientId + "/in/device/" + _deviceId + "/asset/+/command";  //the arduino is only interested in the actuator commands, no management commands
-	char Mqttstring_buff[MqttString.length()+1];
-    MqttString.toCharArray(Mqttstring_buff, MqttString.length()+1);
-    _mqttclient->subscribe(Mqttstring_buff);
-
+	writeCommand(CMD_SEND, value, String(id));
+	bool res = waitForOk();
 	#ifdef DEBUG
-    Serial.print(F("MQTT Client subscribed"));
+	if(res == false)
+		Serial.println("Failed to send value");
+	else
+		Serial.println("value sent");
 	#endif
-}
-
-//returns the pin nr found in the topic
-int ATTDevice::GetPinNr(char* topic, int topicLength)
-{
-	return topic[topicLength - 9] - 48;
+	return res;
 }
 
 

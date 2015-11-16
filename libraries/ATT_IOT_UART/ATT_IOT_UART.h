@@ -7,14 +7,16 @@ Original author: Peter Leemans (2014)
 2/3/2015	Jan Bogaerts 	release 2
 */
 
-#ifndef ATTDevice_h
-#define ATTDevice_h
+#ifndef ATT_IOT_ART
+#define ATT_IOT_ART
 
 #include "Arduino.h"
 #include <string.h>
 
 #define DEFAULT_INPUT_BUFFER_SIZE 96
 #define DEFAULT_TIMEOUT 120
+
+typedef void (*mqttCallback)(int pin, String& value);
 
 //this class represents the ATT cloud platform.
 class ATTDevice
@@ -30,6 +32,10 @@ class ATTDevice
 		*/
 		void Init(String deviceId, String clientId, String clientKey);
 		
+		/*Start up the wifi network
+		blocks until connection has been made*/
+		void StartWifi(String& ssid, String& pwd);
+		
 		/*connect with the http server (call first)
 		-Client: the client object to use for communicating with the cloud HTTP server (this is usually an EthernetClient, WifiClient or similar)
 		-httpServer: the name of the http server to use, kept in memory until after calling 'Subscribe' 
@@ -38,26 +44,33 @@ class ATTDevice
 		
 		//create or update the specified asset. (call after connecting)
 		//note: after this call, the name will be in lower case, so that it can be used to compare with the topic of incomming messages.
-		void AddAsset(int id, String name, String description, bool isActuator, String type);
+		bool AddAsset(int id, String name, String description, bool isActuator, String type);
 
-		/*Stop http processing & make certain that we can receive data from the mqtt server. */
-		void Subscribe(PubSubClient& mqttclient);
+		/*Stop http processing & make certain that we can receive data from the mqtt server. 
+		blocks until connection has been made*/
+		void Subscribe(char broker[], mqttCallback callback);
 		
 		//send a data value to the cloud server for the sensor with the specified id.
-		void Send(String value, int id);
+		//returns true when successful
+		bool Send(String value, int id);
 	
 		//check for any new mqtt messages.
 		void Process();
-		
-		//returns the pin nr found in the topic
-		int GetPinNr(char* topic, int topicLength);
+
 	private:	
 		Stream* _stream;
+		mqttCallback _callback;
 		char inputBuffer[DEFAULT_INPUT_BUFFER_SIZE + 1];
 		
+		void writeCommand(const char* command, String& param1);
+		void writeCommand(const char* command, String& param1, String& param2);
 		void writeCommand(const char* command, String& param1, String& param2, String& param3);
-		bool waitForOk();
+		void writeCommand(const char* command, String& param1, String& param2, String& param3, String& param4, String& param5);
+		
+		//if timeout == 0: then wait indefinitely
+		bool waitForOk(unsigned short timeout = DEFAULT_TIMEOUT);
 		void sendParam(String& param);
+		//if timeout == 0: then wait indefinitely
 		bool expectString(const char* str, unsigned short timeout = DEFAULT_TIMEOUT);
 		unsigned short readLn(char* buffer, unsigned short size, unsigned short start);
 		unsigned short readLn() { return readLn(this->inputBuffer, DEFAULT_INPUT_BUFFER_SIZE); };
