@@ -2,10 +2,10 @@
 	ATT_IOT.cpp - SmartLiving.io Arduino library 
 */
 
-#define DEBUG					//turns on debugging in the IOT library. comment out this line to save memory.
+//#define DEBUG					//turns on debugging in the IOT library. comment out this line to save memory.
 
 
-#include "ATT_IOT_ART.h"
+#include "ATT_IOT_UART.h"
 #include "SerialCommands.h"
 
 #define RETRYDELAY 5000					//the nr of milliseconds that we pause before retrying to create the connection
@@ -111,7 +111,6 @@ bool ATTDevice::expectString(const char* str, unsigned short timeout)
 			Serial.print(this->inputBuffer);
 			Serial.print(")");
 			#endif
-
 			// TODO make more strict?
 			if (strstr(this->inputBuffer, str) != NULL)
 			{
@@ -133,7 +132,6 @@ unsigned short ATTDevice::readLn(char* buffer, unsigned short size, unsigned sho
 		this->inputBuffer[start + len - 1] = 0; // bytes until \n always end with \r, so get rid of it (-1)
 	else
 		this->inputBuffer[start] = 0;
-
 	return len;
 }
 
@@ -143,6 +141,7 @@ bool ATTDevice::Init(String deviceId, String clientId, String clientKey)
 	#ifdef DEBUG
 	Serial.println(F("initializing serial connection with wifi module"));
 	#endif
+  _stream->flush();
 	writeCommand(CMD_INIT, deviceId, clientId, clientKey);
 	bool res = waitForOk();
 	#ifdef DEBUG
@@ -155,10 +154,10 @@ bool ATTDevice::Init(String deviceId, String clientId, String clientKey)
 }
 
 /*Start up the wifi network*/
-void ATTDevice::StartWifi(String& ssid, String& pwd)
+void ATTDevice::StartWifi(String ssid, String pwd)
 {
 	#ifdef DEBUG
-	Serial.println(F("starting wifi"));
+	Serial.println("starting wifi");
 	#endif
 	writeCommand(CMD_WIFI, ssid, pwd);
 	bool res = waitForOk(0);	//we wait indefinitely
@@ -166,7 +165,7 @@ void ATTDevice::StartWifi(String& ssid, String& pwd)
 	if(res == false)
 		Serial.println("failed to start wifi, retrying...");
 	else
-		Serial.println("wifi started")
+		Serial.println("wifi started");
 	#endif
 }
 
@@ -177,8 +176,9 @@ bool ATTDevice::Connect(char httpServer[])
 	Serial.println(F("Connecting"));
 	#endif
 
-	writeCommand(CMD_CONNECT, String(httpServer));
-	bool res = waitForOk();
+  String param = String(httpServer);
+	writeCommand(CMD_CONNECT, param);
+	bool res = waitForOk(0);
 	#ifdef DEBUG
 	if(res == false){
 		Serial.print(HTTPSERVTEXT);
@@ -201,7 +201,13 @@ bool ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 	Serial.println(F("Connecting"));
 	#endif
 
-	writeCommand(CMD_ADDASSET, String(id), name, description, String(isActuator), type);
+  String isAct;
+  if(isActuator)
+    isAct = "true";
+  else
+    isAct = "false";
+  String idStr = String(id);
+	writeCommand(CMD_ADDASSET, idStr, name, description, isAct, type);
 	bool res = waitForOk();
 	#ifdef DEBUG
 	if(res == false)
@@ -215,21 +221,24 @@ bool ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 //connect with the broker
 void ATTDevice::Subscribe(char broker[], mqttCallback callback)
 {
-	_callback = callback
+	_callback = callback;
 	#ifdef DEBUG
 	Serial.println(F("Stopping HTTP, starting mqtt"));
 	#endif
 	bool res = false;
 	while(!res){
-		writeCommand(CMD_SUBSCRIBE, String(broker));
+		String param = String(broker);
+		writeCommand(CMD_SUBSCRIBE, param);
 		res = waitForOk();
 		#ifdef DEBUG
-		if(res == false)
+		if(res == false){
 			Serial.print(MQTTSERVTEXT);
 			Serial.println(FAILED_RETRY);
-		else
+		}
+		else{
 			Serial.print(MQTTSERVTEXT);
-			Serial.println(SUCCESTXT)
+			Serial.println(SUCCESTXT);
+		}
 		#endif
 	}
 }
@@ -260,10 +269,11 @@ void ATTDevice::Process()
 				return;
 			}
 		}
+  }
 }
 
 //send a data value to the cloud server for the sensor with the specified id.
-void ATTDevice::Send(String value, int id)
+bool ATTDevice::Send(String value, int id)
 {
 	
 	#ifdef DEBUG																					//don't need to write all of this if not debugging.
@@ -272,8 +282,9 @@ void ATTDevice::Send(String value, int id)
 	Serial.print(": "); 
 	Serial.println(value);																	//this value is still useful and generated anyway, so no extra cost.
 	#endif
-	
-	writeCommand(CMD_SEND, value, String(id));
+
+  String idStr = String(id);
+	writeCommand(CMD_SEND, value, idStr);
 	bool res = waitForOk();
 	#ifdef DEBUG
 	if(res == false)

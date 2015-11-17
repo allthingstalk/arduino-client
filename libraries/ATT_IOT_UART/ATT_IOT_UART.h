@@ -7,14 +7,14 @@ Original author: Peter Leemans (2014)
 2/3/2015	Jan Bogaerts 	release 2
 */
 
-#ifndef ATT_IOT_ART
-#define ATT_IOT_ART
+#ifndef ATT_IOT_UART
+#define ATT_IOT_UART
 
 #include "Arduino.h"
 #include <string.h>
 
 #define DEFAULT_INPUT_BUFFER_SIZE 96
-#define DEFAULT_TIMEOUT 120
+#define DEFAULT_TIMEOUT 500
 
 typedef void (*mqttCallback)(int pin, String& value);
 
@@ -30,11 +30,11 @@ class ATTDevice
 		clientId: the client id, found on the website
 		clientkey: secret key for your device, found on website.
 		*/
-		void Init(String deviceId, String clientId, String clientKey);
+		bool Init(String deviceId, String clientId, String clientKey);
 		
 		/*Start up the wifi network
 		blocks until connection has been made*/
-		void StartWifi(String& ssid, String& pwd);
+		void StartWifi(String ssid, String pwd);
 		
 		/*connect with the http server (call first)
 		-Client: the client object to use for communicating with the cloud HTTP server (this is usually an EthernetClient, WifiClient or similar)
@@ -72,8 +72,8 @@ class ATTDevice
 		void sendParam(String& param);
 		//if timeout == 0: then wait indefinitely
 		bool expectString(const char* str, unsigned short timeout = DEFAULT_TIMEOUT);
-		unsigned short readLn(char* buffer, unsigned short size, unsigned short start);
-		unsigned short readLn() { return readLn(this->inputBuffer, DEFAULT_INPUT_BUFFER_SIZE); };
+		unsigned short readLn(char* buffer, unsigned short size, unsigned short start = 0);
+		unsigned short readLn() { return readLn(this->inputBuffer, DEFAULT_INPUT_BUFFER_SIZE); }
 };
 
 #endif
