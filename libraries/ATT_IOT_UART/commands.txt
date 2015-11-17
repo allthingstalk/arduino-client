@@ -1,0 +1,4 @@
+ATI;KMtw1W1pfixeLirPsOSBlbK;testjan;5i4duakv2bq
+ATW;JBOROUTER;4SweetMary2Jane
+ATC;api.smartliving.io
+ATA;1;test;test desc;true;boolean

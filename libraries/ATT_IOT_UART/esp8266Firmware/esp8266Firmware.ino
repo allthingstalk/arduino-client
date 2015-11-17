@@ -5,6 +5,7 @@
 #include <SPI.h>                                //required to have support for signed/unsigned long type..
 #include "SerialCommands.h"
 
+#define DEBUG
 
 // Enter below your client credentials. 
 //These credentials can be found in the configuration pane under your device in the smartliving.io website 
@@ -20,9 +21,11 @@ PubSubClient pubSub(ethClient);  // mqttServer, 1883, callback,
 void setup()
 {         
   Serial.begin(9600);                         // init serial link for debugging                                                              
+  Serial.println("working");
 }
 
-char inputBuffer[255];							//the input buffer for receiving commands
+#define INPUTBUFFERSIZE 255
+char inputBuffer[INPUTBUFFERSIZE];							//the input buffer for receiving commands
 String receivedPayload;
 int receivedPin;
 bool dataReceived = false;
@@ -54,6 +57,9 @@ void init(char* startOfParams)
 
 void connect(char* httpServer)
 {
+  #ifdef DEBUG
+  Serial.println(httpServer);
+  #endif
 	Device->Connect(&ethClient, httpServer);
 	Serial.println(STR_RESULT_OK);
 }
@@ -73,7 +79,7 @@ void addAsset(char* startOfParams)
 	*next = 0;
 	++next;
 	
-	char* type = strchr(next, ';');			//first param is ssid
+	char* type = strchr(next, ';');			
 	*type = 0;
 	++type;
 	
@@ -110,11 +116,17 @@ void send(char* startOfParams)
 void loop()
 {
 	if(Serial.available() > 0){
-		int len = Serial->readBytesUntil('\n', inputBuffer, size);
+		int len = Serial.readBytesUntil('\n', inputBuffer, INPUTBUFFERSIZE);
+    if(len > 0)
+        inputBuffer[len - 1] = 0; // bytes until \n always end with \r, so get rid of it (-1)
+    else
+        inputBuffer[0] = 0;
 		char* separator = strchr(inputBuffer, ';');
 		// Actually split the string in 2: replace ';' with 0
+   if(separator){
         *separator = 0;
         ++separator;
+   }
         if(strcmp(inputBuffer, CMD_AT) == 0)
 			Serial.println(STR_RESULT_OK);
 		else if(strcmp(inputBuffer, CMD_INIT) == 0)
@@ -130,7 +142,7 @@ void loop()
 		else if(strcmp(inputBuffer, CMD_SEND) == 0)
 			send(separator);
 		else if(strcmp(inputBuffer, CMD_RECEIVE) == 0){
-			Device.Process(); 
+			Device->Process(); 
 			if(dataReceived){
 				dataReceived = false;
 				Serial.print(receivedPin);
