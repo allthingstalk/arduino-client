@@ -102,6 +102,7 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 	_client->print(F("\" }"));
 	_client->println();
     _client->println();
+	
  
     delay(ETHERNETDELAY);
 	GetHTTPResult();			//get the response from the server and show it.
@@ -111,7 +112,7 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 void ATTDevice::Subscribe(PubSubClient& mqttclient)
 {
 	_mqttclient = &mqttclient;	
-	_serverName = NULL;					//no longer need this reference.
+	_serverName = "";					//no longer need this reference.
 	#ifdef DEBUG
 	Serial.println(F("Stopping HTTP"));
 	#endif
@@ -212,7 +213,7 @@ void ATTDevice::MqttSubscribe()
     _mqttclient->subscribe(Mqttstring_buff);
 
 	#ifdef DEBUG
-    Serial.print(F("MQTT Client subscribed"));
+    Serial.println("MQTT Client subscribed");
 	#endif
 }
 

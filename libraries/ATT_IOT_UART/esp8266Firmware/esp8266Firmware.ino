@@ -16,7 +16,7 @@ ATTDevice *Device;            //create the object that provides the connection t
 //required for the device
 void callback(char* topic, byte* payload, unsigned int length);
 WiFiClient ethClient;
-PubSubClient pubSub(ethClient);  // mqttServer, 1883, callback,
+PubSubClient *pubSub = NULL;  // mqttServer, 1883, callback,
 
 void setup()
 {         
@@ -25,146 +25,160 @@ void setup()
 }
 
 #define INPUTBUFFERSIZE 255
-char inputBuffer[INPUTBUFFERSIZE];							//the input buffer for receiving commands
+char inputBuffer[INPUTBUFFERSIZE];                          //the input buffer for receiving commands
 String receivedPayload;
 int receivedPin;
 bool dataReceived = false;
+char* serverName = NULL;
 
 void setup_wifi(char* startOfParams) {
   delay(10);
-  char* pwd = strchr(startOfParams, ';');			//first param is ssid
+  char* pwd = strchr(startOfParams, ';');           //first param is ssid
   *pwd = 0;
-  ++pwd;											//this now points to second param = pwd	
+  ++pwd;                                            //this now points to second param = pwd 
   
   WiFi.begin(startOfParams, pwd);
   while (WiFi.status() != WL_CONNECTED) {
-	delay(500);
+    delay(500);
   }
   Serial.println(STR_RESULT_OK);
 }
 
 void init(char* startOfParams)
 {
-	char* clientId = strchr(startOfParams, ';');			//first param is ssid
-	*clientId = 0;
-	++clientId;
-	char* clientKey = strchr(clientId, ';');			//first param is ssid
-	*clientKey = 0;
-	++clientKey;
-	Device = new ATTDevice(startOfParams, clientId, clientKey);
-	Serial.println(STR_RESULT_OK);
+    char* clientId = strchr(startOfParams, ';');            //first param is ssid
+    *clientId = 0;
+    ++clientId;
+    char* clientKey = strchr(clientId, ';');            //first param is ssid
+    *clientKey = 0;
+    ++clientKey;
+    Device = new ATTDevice(startOfParams, clientId, clientKey);
+    Serial.println(STR_RESULT_OK);
 }
 
 void connect(char* httpServer)
 {
+  size_t len = strlen(httpServer);
+  if(serverName){
+    delete serverName;
+    serverName = NULL;
+  }
+  serverName = new char[len + 1];
+  strncpy(serverName, httpServer, len);
+  serverName[len] = 0;
+  
   #ifdef DEBUG
-  Serial.println(httpServer);
+  Serial.println(serverName);
   #endif
-	Device->Connect(&ethClient, httpServer);
-	Serial.println(STR_RESULT_OK);
+    Device->Connect(&ethClient, serverName);
+    Serial.println(STR_RESULT_OK);
 }
 
 void addAsset(char* startOfParams)   
 {
-	char* name = strchr(startOfParams, ';');	
-	*name = 0;
-	int pin = atoi(startOfParams);
-	++name;
-	
-	char* description = strchr(name, ';');	
-	*description = 0;
-	++description;
-	
-	char* next = strchr(description, ';');
-	*next = 0;
-	++next;
-	
-	char* type = strchr(next, ';');			
-	*type = 0;
-	++type;
-	
-	bool isActuator = false;
-	if(strcmp(next, "true") == 0) isActuator = true;
-	
-	Device->AddAsset(pin, name, description, isActuator, type);
-	Serial.println(STR_RESULT_OK);
+    char* name = strchr(startOfParams, ';');    
+    *name = 0;
+    int pin = atoi(startOfParams);
+    ++name;
+    
+    char* description = strchr(name, ';');  
+    *description = 0;
+    ++description;
+    
+    char* next = strchr(description, ';');
+    *next = 0;
+    ++next;
+    
+    char* type = strchr(next, ';');         
+    *type = 0;
+    ++type;
+    
+    bool isActuator = false;
+    if(strcmp(next, "true") == 0) isActuator = true;
+
+    Device->AddAsset(pin, name, description, isActuator, type);
+    Serial.println(STR_RESULT_OK);
 }          
-			 
+             
 void subscribe(char* broker)
 {
-	pubSub.setServer(broker, 1883);
-	pubSub.setCallback(callback);
-	Device->Subscribe(pubSub);
-	Serial.println(STR_RESULT_OK);
-}	 
+    if(pubSub)
+		delete pubSub;
+	pubSub = new PubSubClient(ethClient);
+    pubSub->setServer(broker, 1883);
+    pubSub->setCallback(callback);
+    Device->Subscribe(*pubSub);
+    Serial.println(STR_RESULT_OK);
+}    
 
 void send(char* startOfParams)
 {
-	char* value = strchr(startOfParams, ';');			//first param is ssid
-	*value = 0;
-	++value;											//this now points to second param = pwd	
-	 
-	char* next = strchr(value, ';');			//first param is ssid
-	*next = 0;
-	++next;
-	int pin = atoi(next);
-	
-	Device->Send(value, pin);
-	Serial.println(STR_RESULT_OK);
+    char* pinStr = strchr(startOfParams, ';');          //first param is ssid
+    *pinStr = 0;
+    ++pinStr;                                           //this now points to second param = pwd 
+
+    int pin = atoi(pinStr);
+    
+    Device->Send(startOfParams, pin);
+    Serial.println(STR_RESULT_OK);
 }
-			 
+             
 void loop()
 {
-	if(Serial.available() > 0){
-		int len = Serial.readBytesUntil('\n', inputBuffer, INPUTBUFFERSIZE);
+    if(Serial.available() > 0){
+        int len = Serial.readBytesUntil('\n', inputBuffer, INPUTBUFFERSIZE);
     if(len > 0)
         inputBuffer[len - 1] = 0; // bytes until \n always end with \r, so get rid of it (-1)
     else
         inputBuffer[0] = 0;
-		char* separator = strchr(inputBuffer, ';');
-		// Actually split the string in 2: replace ';' with 0
+        char* separator = strchr(inputBuffer, ';');
+        // Actually split the string in 2: replace ';' with 0
    if(separator){
         *separator = 0;
         ++separator;
    }
         if(strcmp(inputBuffer, CMD_AT) == 0)
-			Serial.println(STR_RESULT_OK);
-		else if(strcmp(inputBuffer, CMD_INIT) == 0)
-			init(separator);
-		else if(strcmp(inputBuffer, CMD_WIFI) == 0)
-			setup_wifi(separator);
-		else if(strcmp(inputBuffer, CMD_CONNECT) == 0)
-			connect(separator);
-		else if(strcmp(inputBuffer, CMD_ADDASSET) == 0)
-			addAsset(separator);
-		else if(strcmp(inputBuffer, CMD_SUBSCRIBE) == 0)
-			subscribe(separator);
-		else if(strcmp(inputBuffer, CMD_SEND) == 0)
-			send(separator);
-		else if(strcmp(inputBuffer, CMD_RECEIVE) == 0){
-			Device->Process(); 
-			if(dataReceived){
-				dataReceived = false;
-				Serial.print(receivedPin);
-				Serial.print(";");
-				Serial.println(receivedPayload);
-			}
-			else
-				Serial.println(STR_RESULT_OK);
-		}
-	}
+            Serial.println(STR_RESULT_OK);
+        else if(strcmp(inputBuffer, CMD_INIT) == 0)
+            init(separator);
+        else if(strcmp(inputBuffer, CMD_WIFI) == 0)
+            setup_wifi(separator);
+        else if(strcmp(inputBuffer, CMD_CONNECT) == 0){
+            Serial.println("setting server");
+            connect(separator);
+        }
+        else if(strcmp(inputBuffer, CMD_ADDASSET) == 0){
+            Serial.println("adding asset");
+            addAsset(separator);
+        }
+        else if(strcmp(inputBuffer, CMD_SUBSCRIBE) == 0)
+            subscribe(separator);
+        else if(strcmp(inputBuffer, CMD_SEND) == 0)
+            send(separator);
+        else if(strcmp(inputBuffer, CMD_RECEIVE) == 0){
+            Device->Process(); 
+            if(dataReceived){
+                dataReceived = false;
+                Serial.print(receivedPin);
+                Serial.print(";");
+                Serial.println(receivedPayload);
+            }
+            else
+                Serial.println(STR_RESULT_OK);
+        }
+    }
 }
 
 // Callback function: handles messages that were sent from the iot platform to this device.
 void callback(char* topic, byte* payload, unsigned int length) 
 { 
   {                                                           //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
-	  char message_buff[length + 1];                        //need to copy over the payload so that we can add a /0 terminator, this can then be wrapped inside a string for easy manipulation
-	  strncpy(message_buff, (char*)payload, length);        //copy over the data
-	  message_buff[length] = '\0';                  //make certain that it ends with a null     
-		  
-	  receivedPayload = String(message_buff);
-	  receivedPayload.toLowerCase();            //to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent)
+      char message_buff[length + 1];                        //need to copy over the payload so that we can add a /0 terminator, this can then be wrapped inside a string for easy manipulation
+      strncpy(message_buff, (char*)payload, length);        //copy over the data
+      message_buff[length] = '\0';                  //make certain that it ends with a null     
+          
+      receivedPayload = String(message_buff);
+      receivedPayload.toLowerCase();            //to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent)
   }
   receivedPin = Device->GetPinNr(topic, strlen(topic));
   dataReceived = true;

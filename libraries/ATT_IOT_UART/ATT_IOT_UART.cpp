@@ -107,19 +107,17 @@ bool ATTDevice::expectString(const char* str, unsigned short timeout)
 		if (readLn() > 0)
 		{
 			#ifdef DEBUG		
-			Serial.print("(");
-			Serial.print(this->inputBuffer);
-			Serial.print(")");
+			Serial.println();
+			Serial.println(this->inputBuffer);
 			#endif
 			// TODO make more strict?
-			if (strstr(this->inputBuffer, str) != NULL)
+			if (strstr(this->inputBuffer, str) != NULL)			//the serial modem can return debug statements or the expected string, allow for both.
 			{
 				#ifdef DEBUG
 				Serial.println(" found a match!");
 				#endif
 				return true;
 			}
-			return false;
 		}
 	}
 	return false;

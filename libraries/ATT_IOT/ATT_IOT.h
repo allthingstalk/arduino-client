@@ -16,6 +16,7 @@ Original author: Peter Leemans (2014)
 #include <string.h>
 
 //this class represents the ATT cloud platform.
+
 class ATTDevice
 {
 	public:
@@ -44,7 +45,7 @@ class ATTDevice
 		//returns the pin nr found in the topic
 		int GetPinNr(char* topic, int topicLength);
 	private:	
-		char* _serverName;				//stores the name of the http server that we should use.
+		String _serverName;				//stores the name of the http server that we should use.
 		String _deviceId;				//the device id provided by the user.
 		String _clientId;				//the client id provided by the user.	
 		String _clientKey;				//the client key provided by the user.
