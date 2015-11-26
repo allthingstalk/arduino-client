@@ -33,7 +33,8 @@ bool ATTDevice::Connect(Client* httpClient, char httpServer[])
 	_serverName = httpServer;					//keep track of this value while working with the http server.
 	
 	#ifdef DEBUG
-	Serial.println(F("Connecting"));
+	Serial.print("Connecting to ");
+    Serial.println(httpServer);
 	#endif
 
 	while (!_client->connect(httpServer, 80)) 		// if you get a connection, report back via serial:

@@ -14,7 +14,9 @@ Original author: Peter Leemans (2014)
 #include <string.h>
 
 #define DEFAULT_INPUT_BUFFER_SIZE 96
-#define DEFAULT_TIMEOUT 500
+#define DEFAULT_TIMEOUT 40000
+
+#define DEBUG					//turns on debugging in the IOT library. comment out this line to save memory.
 
 typedef void (*mqttCallback)(int pin, String& value);
 
@@ -67,8 +69,6 @@ class ATTDevice
 		void writeCommand(const char* command, String& param1, String& param2, String& param3);
 		void writeCommand(const char* command, String& param1, String& param2, String& param3, String& param4, String& param5);
 		
-		//if timeout == 0: then wait indefinitely
-		bool waitForOk(unsigned short timeout = DEFAULT_TIMEOUT);
 		void sendParam(String& param);
 		//if timeout == 0: then wait indefinitely
 		bool expectString(const char* str, unsigned short timeout = DEFAULT_TIMEOUT);

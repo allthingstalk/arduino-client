@@ -56,14 +56,20 @@ void setup()
   pinMode(DigitalActuator, OUTPUT);                             // initialize the digital pin as an output.          
   Serial.begin(9600);                                           // init serial link for debugging
   Serial.println("starting");
-  wifi.begin(9600);                                             //init software serial link for wifi
+  wifi.begin(19200);                                             //init software serial link for wifi
   
   while(!Device.Init(deviceId, clientId, clientKey))            //if we can't succeed to initialize and set the device credentials, there is no point to continue
+  {
     Serial.println("failed to init device, retrying");
+	delay(1000);												//give the soft serial conection a little time to settle down	
+  }
   Device.StartWifi("ssid", "pwd");          
     
   while(!Device.Connect(httpServer))                                // connect the device with the IOT platform. No point to continue if we can't succeed at this
+  {
     Serial.println("failed to connect to http server, retrying");
+	delay(1000);												//give the soft serial conection a little time to settle down	
+  }
   Device.AddAsset(DigitalSensor, "sensor", "Digital Sensor Description", false, "boolean");   // Create the Digital Sensor asset for your device
   Device.AddAsset(DigitalActuator, "acuator", "Digital Sensor Description", true, "boolean");   // Create the Digital Sensor asset for your device
   delay(1000);                                                      //give the wifi some time to finish everything

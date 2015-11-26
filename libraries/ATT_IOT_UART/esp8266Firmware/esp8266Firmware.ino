@@ -18,18 +18,24 @@ void callback(char* topic, byte* payload, unsigned int length);
 WiFiClient ethClient;
 PubSubClient *pubSub = NULL;  // mqttServer, 1883, callback,
 
-void setup()
-{         
-  Serial.begin(9600);                         // init serial link for debugging                                                              
-  Serial.println("working");
-}
-
 #define INPUTBUFFERSIZE 255
 char inputBuffer[INPUTBUFFERSIZE];                          //the input buffer for receiving commands
 String receivedPayload;
 int receivedPin;
 bool dataReceived = false;
 char* serverName = NULL;
+
+void setup()
+{         
+  Serial.begin(19200);                         // init serial link for debugging                                                              
+  Serial.println("working");
+}
+
+void serialFlush(){
+  while(Serial.available() > 0) {
+    char t = Serial.read();
+  }
+} 
 
 void setup_wifi(char* startOfParams) {
   delay(10);
@@ -41,7 +47,8 @@ void setup_wifi(char* startOfParams) {
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
-  Serial.println(STR_RESULT_OK);
+  serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
+  Serial.println(CMD_WIFI_OK);
 }
 
 void init(char* startOfParams)
@@ -53,25 +60,24 @@ void init(char* startOfParams)
     *clientKey = 0;
     ++clientKey;
     Device = new ATTDevice(startOfParams, clientId, clientKey);
-    Serial.println(STR_RESULT_OK);
+    serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
+	  Serial.println(CMD_INIT_OK);
 }
 
 void connect(char* httpServer)
 {
-  size_t len = strlen(httpServer);
-  if(serverName){
-    delete serverName;
-    serverName = NULL;
-  }
-  serverName = new char[len + 1];
-  strncpy(serverName, httpServer, len);
-  serverName[len] = 0;
+    size_t len = strlen(httpServer);
+    if(serverName){
+      delete serverName;
+      serverName = NULL;
+    }
+    serverName = new char[len + 1];
+    strncpy(serverName, httpServer, len);
+    serverName[len] = 0;
   
-  #ifdef DEBUG
-  Serial.println(serverName);
-  #endif
     Device->Connect(&ethClient, serverName);
-    Serial.println(STR_RESULT_OK);
+    serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
+	Serial.println(CMD_CONNECT_OK);
 }
 
 void addAsset(char* startOfParams)   
@@ -97,7 +103,9 @@ void addAsset(char* startOfParams)
     if(strcmp(next, "true") == 0) isActuator = true;
 
     Device->AddAsset(pin, name, description, isActuator, type);
-    Serial.println(STR_RESULT_OK);
+	delay(1000);
+  serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
+	Serial.println(CMD_ADDASSET_OK);
 }          
              
 void subscribe(char* broker)
@@ -108,7 +116,8 @@ void subscribe(char* broker)
     pubSub->setServer(broker, 1883);
     pubSub->setCallback(callback);
     Device->Subscribe(*pubSub);
-    Serial.println(STR_RESULT_OK);
+    serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
+	Serial.println(CMD_SUBSCRIBE_OK);
 }    
 
 void send(char* startOfParams)
@@ -120,7 +129,8 @@ void send(char* startOfParams)
     int pin = atoi(pinStr);
     
     Device->Send(startOfParams, pin);
-    Serial.println(STR_RESULT_OK);
+    serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
+	Serial.println(CMD_SEND_OK);
 }
              
 void loop()
@@ -137,18 +147,18 @@ void loop()
         *separator = 0;
         ++separator;
    }
-        if(strcmp(inputBuffer, CMD_AT) == 0)
-            Serial.println(STR_RESULT_OK);
+        if(strcmp(inputBuffer, CMD_AT) == 0){
+            serialFlush();
+            Serial.println(CMD_AT_OK);
+        }
         else if(strcmp(inputBuffer, CMD_INIT) == 0)
             init(separator);
         else if(strcmp(inputBuffer, CMD_WIFI) == 0)
             setup_wifi(separator);
         else if(strcmp(inputBuffer, CMD_CONNECT) == 0){
-            Serial.println("setting server");
             connect(separator);
         }
         else if(strcmp(inputBuffer, CMD_ADDASSET) == 0){
-            Serial.println("adding asset");
             addAsset(separator);
         }
         else if(strcmp(inputBuffer, CMD_SUBSCRIBE) == 0)
