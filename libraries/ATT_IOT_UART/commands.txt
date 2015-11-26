@@ -1,6 +1,0 @@
-ATI;KMtw1W1pfixeLirPsOSBlbK;testjan;5i4duakv2bq
-ATW;JBOROUTER;4SweetMary2Jane                            ATW;GPE_WLAN2;$GP3uRoPE!
-ATC;api.smartliving.io
-ATA;1;test;test desc;true;boolean 
-ATB;broker.smartliving.io
-ATS;true;1

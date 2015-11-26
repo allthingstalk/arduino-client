@@ -3,7 +3,7 @@
 #include <PubSubClient.h>
 #include <ATT_IOT.h>                            //AllThingsTalk IoT library
 #include <SPI.h>                                //required to have support for signed/unsigned long type..
-#include "SerialCommands.h"
+#include "../SerialCommands.h"
 
 #define DEBUG
 
