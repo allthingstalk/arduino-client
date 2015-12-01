@@ -132,7 +132,10 @@ void send(char* startOfParams)
     serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
 	Serial.println(CMD_SEND_OK);
 }
-             
+
+
+bool CommsDone = false;											// true when we hav received at least 1 command from client. Used to keep initializing the serial connection, so that user doesn't have to push the reset button on the wifi module before comms can begin.
+ 
 void loop()
 {
     if(Serial.available() > 0){
@@ -150,21 +153,32 @@ void loop()
         if(strcmp(inputBuffer, CMD_AT) == 0){
             serialFlush();
             Serial.println(CMD_AT_OK);
+			CommsDone = true;
         }
-        else if(strcmp(inputBuffer, CMD_INIT) == 0)
+        else if(strcmp(inputBuffer, CMD_INIT) == 0){
             init(separator);
-        else if(strcmp(inputBuffer, CMD_WIFI) == 0)
+			CommsDone = true;
+		}
+        else if(strcmp(inputBuffer, CMD_WIFI) == 0){
             setup_wifi(separator);
+			CommsDone = true;
+		}
         else if(strcmp(inputBuffer, CMD_CONNECT) == 0){
             connect(separator);
+			CommsDone = true;
         }
         else if(strcmp(inputBuffer, CMD_ADDASSET) == 0){
             addAsset(separator);
+			CommsDone = true;
         }
-        else if(strcmp(inputBuffer, CMD_SUBSCRIBE) == 0)
+        else if(strcmp(inputBuffer, CMD_SUBSCRIBE) == 0){
             subscribe(separator);
-        else if(strcmp(inputBuffer, CMD_SEND) == 0)
+			CommsDone = true;
+		}
+        else if(strcmp(inputBuffer, CMD_SEND) == 0){
             send(separator);
+			CommsDone = true;
+		}
         else if(strcmp(inputBuffer, CMD_RECEIVE) == 0){
             Device->Process(); 
             if(dataReceived){
@@ -175,8 +189,13 @@ void loop()
             }
             else
                 Serial.println(STR_RESULT_OK);
+			CommsDone = true;
         }
     }
+	if(CommsDone == false){
+		setup();
+		delay(1000);
+	}
 }
 
 // Callback function: handles messages that were sent from the iot platform to this device.
