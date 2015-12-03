@@ -15,7 +15,7 @@
 char UARTINITTEXT[] = "initialization of UART";
 char HTTPSERVTEXT[] = "connection HTTP Server";
 char MQTTSERVTEXT[] = "connection MQTT Server";
-char FAILED_RETRY[] = " failed,retry";
+char FAILED[] = " failed";
 char SUCCESTXT[] = " established";
 #endif
 
@@ -85,7 +85,7 @@ void ATTDevice::sendParam(String& param)
 
 
 // waits for string, if str is found returns ok, if other string is found returns false, if timeout returns false
-bool ATTDevice::expectString(const char* str, unsigned short timeout)
+bool ATTDevice::expectString(const char* str, unsigned short timeout, bool report)
 {
     unsigned long start = millis();
     while (timeout == 0 || millis() < start + timeout)          //if timeout = 0, we wait indefinetly
@@ -101,9 +101,31 @@ bool ATTDevice::expectString(const char* str, unsigned short timeout)
             if (strstr(this->inputBuffer, str) != NULL)         //the serial modem can return debug statements or the expected string, allow for both.
 				return true;
 			#ifdef DEBUG        
-            Serial.println(this->inputBuffer);					//only show on screen if it's not an 'ok' response.			
+			if(report)
+				Serial.println(this->inputBuffer);					//only show on screen if it's not an 'ok' response.			
             #endif
         }
+    }
+    return false;
+}
+
+bool ATTDevice::expectAny(unsigned short timeout)
+{
+	unsigned long start = millis();
+    while (timeout == 0 || millis() < start + timeout)          //if timeout = 0, we wait indefinetly
+    {
+        #ifdef DEBUG    
+        Serial.print(".");
+        #endif
+
+        if (readLn() > 0){
+			delay(500);
+			while(Serial.available() > 0){
+				readLn();
+				delay(500);
+			}
+			return true;
+		}
     }
     return false;
 }
@@ -126,28 +148,33 @@ bool ATTDevice::Init(String deviceId, String clientId, String clientKey)
     #endif
 	
 	_stream->println(CMD_AT);                   //first send the at command to synchronize: we have something to wait for an 'ok' ->could be that the wifi chip is still processing a prev command and returns 'ok', in which case the new 'init' is lost.
-    bool res = expectString(CMD_AT_OK);
+    bool res = expectString(CMD_AT_OK, 2000, false);	//for init, we use a shorter wait period, so that the main application can retry quickly (resend the AT, so that the remote wifi can sync).
+	if(res == false){							//if the AT command fails the first time, it could be that the remote wifi is still doing something else, so wait until it has returned any string and try again.	
+		expectAny();
+		_stream->println(CMD_AT);
+		res = expectString(CMD_AT_OK, 2000, false);
+	}
 	if(res == false){
 		#ifdef DEBUG
 		Serial.print(UARTINITTEXT);
-		Serial.println(FAILED_RETRY);
+		Serial.println(FAILED);
 		#endif
 		return res;
 	}
 	
     writeCommand(CMD_INIT, deviceId, clientId, clientKey);
-    res = expectString(CMD_INIT_OK);
-    #ifdef DEBUG
+    res = expectString(CMD_INIT_OK, 2000);		//for init, we use a shorter wait period, so that the main application can retry quickly (resend the AT, so that the remote wifi can sync).
+    #ifdef DEBUG	
     if(res == false){
         Serial.print(UARTINITTEXT);
-        Serial.println(FAILED_RETRY);
+        Serial.println(FAILED);
     }
     #endif
     return res;
 }
 
 /*Start up the wifi network*/
-void ATTDevice::StartWifi(String ssid, String pwd)
+bool ATTDevice::StartWifi(String ssid, String pwd)
 {
     #ifdef DEBUG
     Serial.println("starting wifi");
@@ -156,10 +183,11 @@ void ATTDevice::StartWifi(String ssid, String pwd)
     bool res = expectString(CMD_WIFI_OK, 0);    //we wait indefinitely
     #ifdef DEBUG
     if(res == false)
-        Serial.println("failed to start wifi, retrying...");
+        Serial.println("failed to start wifi");
     else
         Serial.println("wifi started");
     #endif
+	return res;
 }
 
 //connect with the http server
@@ -171,12 +199,7 @@ bool ATTDevice::Connect(char httpServer[])
     #ifdef DEBUG
     if(res == false){
         Serial.print(HTTPSERVTEXT);
-        Serial.println(FAILED_RETRY);
-    }
-    else
-    {
-        Serial.print(HTTPSERVTEXT);
-        Serial.println(SUCCESTXT);
+        Serial.println(FAILED);
     }
     #endif
     return res;
@@ -189,46 +212,38 @@ bool ATTDevice::AddAsset(int id, String name, String description, bool isActuato
     Serial.println(F("adding asset"));
     #endif
 
-  String isAct;
-  if(isActuator)
-    isAct = "true";
-  else
-    isAct = "false";
-  String idStr = String(id);
-    writeCommand(CMD_ADDASSET, idStr, name, description, isAct, type);
-    bool res = expectString(CMD_ADDASSET_OK);
-    #ifdef DEBUG
-    if(res == false)
-        Serial.println("Failed to add asset");
-    else
-        Serial.println("asset added");
-    #endif
-    return res;
+    String isAct;
+    if(isActuator)
+		isAct = "true";
+	else
+		isAct = "false";
+	String idStr = String(id);
+	writeCommand(CMD_ADDASSET, idStr, name, description, isAct, type);
+	bool res = expectString(CMD_ADDASSET_OK);
+	#ifdef DEBUG
+	if(res == false)
+		Serial.println("Failed to add asset");
+	else
+		Serial.println("asset added");
+	#endif
+	return res;
 }
 
 //connect with the broker
-void ATTDevice::Subscribe(char broker[], mqttCallback callback)
+bool ATTDevice::Subscribe(char broker[], mqttCallback callback)
 {
     _callback = callback;
-    #ifdef DEBUG
-    Serial.println(F("Stopping HTTP, starting mqtt"));
-    #endif
     bool res = false;
-    while(!res){
-        String param = String(broker);
-        writeCommand(CMD_SUBSCRIBE, param);
-        res = expectString(CMD_SUBSCRIBE_OK);
-        #ifdef DEBUG
-        if(res == false){
-            Serial.print(MQTTSERVTEXT);
-            Serial.println(FAILED_RETRY);
-        }
-        else{
-            Serial.print(MQTTSERVTEXT);
-            Serial.println(SUCCESTXT);
-        }
-        #endif
-    }
+    String param = String(broker);
+	writeCommand(CMD_SUBSCRIBE, param);
+	res = expectString(CMD_SUBSCRIBE_OK);
+	#ifdef DEBUG
+	if(res == false){
+		Serial.print(MQTTSERVTEXT);
+		Serial.println(FAILED);
+	}
+	#endif
+	return res;
 }
 
 //check for any new mqtt messages.
@@ -262,9 +277,7 @@ void ATTDevice::Process()
 //send a data value to the cloud server for the sensor with the specified id.
 bool ATTDevice::Send(String value, int id)
 {
-    
-
-  String idStr = String(id);
+	String idStr = String(id);
     writeCommand(CMD_SEND, value, idStr);
     bool res = expectString(CMD_SEND_OK);
     #ifdef DEBUG

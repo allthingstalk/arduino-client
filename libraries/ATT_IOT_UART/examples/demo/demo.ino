@@ -30,9 +30,11 @@
 // Enter below your client credentials. 
 //These credentials can be found in the configuration pane under your device in the smartliving.io website 
 
-char deviceId[] = "devId";                                      // Your device id comes here
-char clientId[] = "clientId";                                   // Your client id comes here;
-char clientKey[] = "clientKey";                                 // Your client key comes here;
+#define DEVICEID "devId";                                      // Your device id comes here
+#define CLIENTID "clientId";                                   // Your client id comes here;
+#define CLIENTKEY "clientKey";                                 // Your client key comes here;
+#define WIFI_SSID "ssid"
+#define WIFI_PWD "pwd"
 
 SoftwareSerial wifi(2, 3);                                      // 2=RX, 3=TX
 ATTDevice Device(&wifi);                  
@@ -58,22 +60,17 @@ void setup()
   Serial.println("starting");
   wifi.begin(19200);                                             //init software serial link for wifi
   
-  while(!Device.Init(deviceId, clientId, clientKey))            //if we can't succeed to initialize and set the device credentials, there is no point to continue
-  {
-    Serial.println("failed to init device, retrying");
-	delay(1000);												//give the soft serial conection a little time to settle down	
-  }
-  Device.StartWifi("ssid", "pwd");          
-    
+  while(!Device.Init(DEVICEID, CLIENTID, CLIENTKEY))            //if we can't succeed to initialize and set the device credentials, there is no point to continue
+    Serial.println("retrying...");
+  while(!Device.StartWifi(WIFI_SSID, WIFI_PWD))
+	Serial.println("retrying...");
   while(!Device.Connect(httpServer))                                // connect the device with the IOT platform. No point to continue if we can't succeed at this
-  {
-    Serial.println("failed to connect to http server, retrying");
-	delay(1000);												//give the soft serial conection a little time to settle down	
-  }
+    Serial.println("retrying");
   Device.AddAsset(DigitalSensor, "sensor", "Digital Sensor Description", false, "boolean");   // Create the Digital Sensor asset for your device
   Device.AddAsset(DigitalActuator, "acuator", "Digital Sensor Description", true, "boolean");   // Create the Digital Sensor asset for your device
   delay(1000);                                                      //give the wifi some time to finish everything
-  Device.Subscribe(mqttServer, callback);                           // make certain that we can receive message from the iot platform (activate mqtt). This stops the http connection
+  while(!Device.Subscribe(mqttServer, callback))                           // make certain that we can receive message from the iot platform (activate mqtt). This stops the http connection
+	Serial.println("retrying");
 }
 
 

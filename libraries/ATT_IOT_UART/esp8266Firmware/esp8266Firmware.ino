@@ -11,7 +11,7 @@
 //These credentials can be found in the configuration pane under your device in the smartliving.io website 
 
 
-ATTDevice *Device;            //create the object that provides the connection to the cloud to manager the device.
+ATTDevice *Device = NULL;            //create the object that provides the connection to the cloud to manager the device.
 
 //required for the device
 void callback(char* topic, byte* payload, unsigned int length);
@@ -28,7 +28,6 @@ char* serverName = NULL;
 void setup()
 {         
   Serial.begin(19200);                         // init serial link for debugging                                                              
-  Serial.println("working");
 }
 
 void serialFlush(){
@@ -59,9 +58,13 @@ void init(char* startOfParams)
     char* clientKey = strchr(clientId, ';');            //first param is ssid
     *clientKey = 0;
     ++clientKey;
+	if(Device != NULL){
+		delete Device;
+		Device = NULL;
+	}
     Device = new ATTDevice(startOfParams, clientId, clientKey);
     serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
-	  Serial.println(CMD_INIT_OK);
+	Serial.println(CMD_INIT_OK);
 }
 
 void connect(char* httpServer)
@@ -104,14 +107,16 @@ void addAsset(char* startOfParams)
 
     Device->AddAsset(pin, name, description, isActuator, type);
 	delay(1000);
-  serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
+	serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
 	Serial.println(CMD_ADDASSET_OK);
 }          
              
 void subscribe(char* broker)
 {
-    if(pubSub)
+    if(pubSub){
 		delete pubSub;
+		pubSub = NULL;
+	}
 	pubSub = new PubSubClient(ethClient);
     pubSub->setServer(broker, 1883);
     pubSub->setCallback(callback);

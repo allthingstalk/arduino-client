@@ -36,7 +36,7 @@ class ATTDevice
 		
 		/*Start up the wifi network
 		blocks until connection has been made*/
-		void StartWifi(String ssid, String pwd);
+		bool StartWifi(String ssid, String pwd);
 		
 		/*connect with the http server (call first)
 		-Client: the client object to use for communicating with the cloud HTTP server (this is usually an EthernetClient, WifiClient or similar)
@@ -50,7 +50,7 @@ class ATTDevice
 
 		/*Stop http processing & make certain that we can receive data from the mqtt server. 
 		blocks until connection has been made*/
-		void Subscribe(char broker[], mqttCallback callback);
+		bool Subscribe(char broker[], mqttCallback callback);
 		
 		//send a data value to the cloud server for the sensor with the specified id.
 		//returns true when successful
@@ -71,7 +71,8 @@ class ATTDevice
 		
 		void sendParam(String& param);
 		//if timeout == 0: then wait indefinitely
-		bool expectString(const char* str, unsigned short timeout = DEFAULT_TIMEOUT);
+		bool expectString(const char* str, unsigned short timeout = DEFAULT_TIMEOUT, bool report = true);
+		bool expectAny(unsigned short timeout = DEFAULT_TIMEOUT);
 		unsigned short readLn(char* buffer, unsigned short size, unsigned short start = 0);
 		unsigned short readLn() { return readLn(this->inputBuffer, DEFAULT_INPUT_BUFFER_SIZE); }
 };
