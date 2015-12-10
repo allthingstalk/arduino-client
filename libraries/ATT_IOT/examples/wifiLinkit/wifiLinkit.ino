@@ -66,14 +66,12 @@ void setup()
     delay(1000);
   Serial.println("connected");
 
-  if(Device.Connect(&c, httpServer))                                    // connect the device with the IOT platform.
-  {
-    Device.AddAsset(a0Id, "knob", "rotary switch",false, "integer");
-    Device.AddAsset(a1Id, "led", "light emitting diode", true, "boolean");
-    Device.Subscribe(pubSub);                                           // make certain that we can receive message from the iot platform (activate mqtt)
-  }
-  else 
-    while(true); 
+  while(!Device.Connect(&ethClient, httpServer))                          // connect the device with the IOT platform.
+    Serial.println("retrying");
+  Device.AddAsset(a0Id, "knob", "rotary switch",false, "integer");
+  Device.AddAsset(a1Id, "led", "light emitting diode", true, "boolean");
+  while(!Device.Subscribe(pubSub))                                      // make certain that we can receive message from the iot platform (activate mqtt)
+    Serial.println("retrying"); 
 }
 
 unsigned long time;                                                      //only send every x amount of time.

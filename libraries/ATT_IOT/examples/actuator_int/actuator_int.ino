@@ -36,9 +36,9 @@ char clientId[] = ""; // Your client id comes here;
 char clientKey[] = ""; // Your client key comes here;
 
 
-ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "api.smartliving.io";                   // HTTP API Server host                  
-char mqttServer[] = "broker.smartliving.io";            // MQTT Server Address
+ATTDevice Device(deviceId, clientId, clientKey);            	//create the object that provides the connection to the cloud to manager the device.
+char httpServer[] = "api.smartliving.io";                   	// HTTP API Server host                  
+char mqttServer[] = "broker.smartliving.io";            		// MQTT Server Address
 
 
 // Define PIN numbers for assets
@@ -54,23 +54,21 @@ void setup()
 {
          
   pinMode(AnalogActuator, OUTPUT);                              // initialize the digital pin as an output.         
-  Serial.begin(9600);                                       // init serial link for debugging
+  Serial.begin(9600);                                       	// init serial link for debugging
   
-  byte mac[] = {0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E};        // Adapt to your Arduino MAC Address  
-  if (Ethernet.begin(mac) == 0)                             // Initialize the Ethernet connection:
+  byte mac[] = {0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E};        	// Adapt to your Arduino MAC Address  
+  if (Ethernet.begin(mac) == 0)                             	// Initialize the Ethernet connection:
   { 
     Serial.println(F("DHCP failed,end"));
-    while(true);                                            //we failed to connect, halt execution here. 
+    while(true);                                            	//we failed to connect, halt execution here. 
   }
-  delay(1000);                                              //give the Ethernet shield a second to initialize:
+  delay(1000);                                              	//give the Ethernet shield a second to initialize:
   
-  if(Device.Connect(&ethClient, httpServer))                                // connect the device with the IOT platform.
-  {
-    Device.AddAsset(AnalogActuator, "YourAnalogActuatorname", "Analog Actuator Description", true, "integer");   // Create the Digital Actuator asset for your device
-    Device.Subscribe(pubSub);                                   // make certain that we can receive message from the iot platform (activate mqtt)
-  }
-  else 
-    while(true);                                                                
+  while(!Device.Connect(&ethClient, httpServer))					            // connect the device with the IOT platform.
+	Serial.println("retrying");
+  Device.AddAsset(AnalogActuator, "YourAnalogActuatorname", "Analog Actuator Description", true, "integer");   // Create the Digital Actuator asset for your device
+  while(!Device.Subscribe(pubSub))						            // make certain that we can receive message from the iot platform (activate mqtt)
+	Serial.println("retrying");                                                               
 }
                                
 void loop()

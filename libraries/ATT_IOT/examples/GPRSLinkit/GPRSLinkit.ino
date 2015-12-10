@@ -43,8 +43,8 @@ int a1=8;
 int a1Id=1;
 
 ATTDevice Device(deviceId, clientId, clientKey);                //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "api.smartliving.io";                   // HTTP API Server host                  
-char mqttServer[] = "broker.smartliving.io";		    // MQTT Server Address
+char httpServer[] = "api.smartliving.io";                       // HTTP API Server host                  
+char mqttServer[] = "broker.smartliving.io";                    // MQTT Server Address
 
 //required for the device
 void callback(char* topic, byte* payload, unsigned int length);
@@ -67,14 +67,12 @@ void setup()
   }
   Serial.println("connected");
 
-  if(Device.Connect(&c, httpServer))                                    // connect the device with the IOT platform.
-  {
-    Device.AddAsset(a0Id, "knob", "rotary switch",false, "integer");
-    Device.AddAsset(a1Id, "led", "light emitting diode", true, "boolean");
-    Device.Subscribe(pubSub);                                           // make certain that we can receive message from the iot platform (activate mqtt)
-  }
-  else 
-    while(true); 
+  while(!Device.Connect(&ethClient, httpServer))                        // connect the device with the IOT platform.
+    Serial.println("retrying");
+  Device.AddAsset(a0Id, "knob", "rotary switch",false, "integer");
+  Device.AddAsset(a1Id, "led", "light emitting diode", true, "boolean");
+  while(!Device.Subscribe(pubSub))                                      // make certain that we can receive message from the iot platform (activate mqtt)
+    Serial.println("retrying"); 
   digitalWrite(a1, LOW);
 }
 

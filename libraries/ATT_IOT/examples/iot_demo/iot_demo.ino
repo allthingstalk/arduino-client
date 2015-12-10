@@ -34,7 +34,7 @@ char clientId[] = "YOUR_CLIENT_ID_HERE";
 char clientKey[] = "YOUR_CLIENT_KEY_HERE";
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "api.smartliving.io";                  	// HTTP API Server host
+char httpServer[] = "api.smartliving.io";                   // HTTP API Server host
 char* mqttServer = "broker.smartliving.io";                   
 
 int knobPin = 0;                                            // Analog 0 is the input pin + identifies the asset on the cloud platform
@@ -48,32 +48,30 @@ PubSubClient pubSub(mqttServer, 1883, callback, ethClient);
 void setup()
 {
   pinMode(ledPin, OUTPUT);                                  // initialize the digital pin as an output.         
-  Serial.begin(9600);                                   	// init serial link for debugging
+  Serial.begin(9600);                                       // init serial link for debugging
   
   byte mac[] = {0x90, 0xA2, 0xDA, 0x0D, 0xE1, 0x3E};        // Adapt to your Arduino MAC Address  
   if (Ethernet.begin(mac) == 0)                             // Initialize the Ethernet connection:
   { 
     Serial.println(F("DHCP failed,end"));
-    while(true);                                    		//we failed to connect, halt execution here. 
+    while(true);                                            //we failed to connect, halt execution here. 
   }
-  delay(1000);                                          	//give the Ethernet shield a second to initialize:
+  delay(1000);                                              //give the Ethernet shield a second to initialize:
   
-  if(Device.Connect(&ethClient, httpServer))                //connect the device with the IOT platform.
-  {
-    Device.AddAsset(knobPin, "knob", "rotary switch",false, "{'type': 'integer', 'minimum': 0, 'maximum': 1023");
-    Device.AddAsset(ledPin, "led", "light emitting diode", true, "boolean");
-    Device.Subscribe(pubSub);                               // make certain that we can receive message from the iot platform (activate mqtt)
-  }
-  else 
-    while(true);                                            //can't set up the device on the cloud, can't continue, so put the app in an ethernal loop so it doesn't do anything else anymore.                              
+  while(!Device.Connect(&ethClient, httpServer))            // connect the device with the IOT platform.
+    Serial.println("retrying");
+  Device.AddAsset(knobPin, "knob", "rotary switch",false, "{'type': 'integer', 'minimum': 0, 'maximum': 1023");
+  Device.AddAsset(ledPin, "led", "light emitting diode", true, "boolean");
+  while(!Device.Subscribe(pubSub))                          // make certain that we can receive message from the iot platform (activate mqtt)
+    Serial.println("retrying"); 
 }
 
-unsigned long time;                                 		//only send every x amount of time.
+unsigned long time;                                         //only send every x amount of time.
 unsigned int prevVal =0;
 void loop()
 {
   unsigned long curTime = millis();
-  if (curTime > (time + 1000))                          	// publish light reading every 5 seconds to sensor 1
+  if (curTime > (time + 1000))                              // publish light reading every 5 seconds to sensor 1
   {
     unsigned int lightRead = analogRead(knobPin);           // read from light sensor (photocell)
     if(prevVal != lightRead){
