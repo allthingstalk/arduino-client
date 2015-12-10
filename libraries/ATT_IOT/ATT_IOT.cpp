@@ -33,7 +33,8 @@ bool ATTDevice::Connect(Client* httpClient, char httpServer[])
 	_serverName = httpServer;					//keep track of this value while working with the http server.
 	
 	#ifdef DEBUG
-	Serial.println(F("Connecting"));
+	Serial.print("Connecting to ");
+    Serial.println(httpServer);
 	#endif
 
 	while (!_client->connect(httpServer, 80)) 		// if you get a connection, report back via serial:
@@ -102,6 +103,7 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 	_client->print(F("\" }"));
 	_client->println();
     _client->println();
+	
  
     delay(ETHERNETDELAY);
 	GetHTTPResult();			//get the response from the server and show it.
@@ -111,7 +113,7 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 void ATTDevice::Subscribe(PubSubClient& mqttclient)
 {
 	_mqttclient = &mqttclient;	
-	_serverName = NULL;					//no longer need this reference.
+	_serverName = "";					//no longer need this reference.
 	#ifdef DEBUG
 	Serial.println(F("Stopping HTTP"));
 	#endif
@@ -176,7 +178,9 @@ void ATTDevice::Send(String value, int id)
 {
 	if(_mqttclient->connected() == false)
 	{
+		#ifdef DEBUG	
 		Serial.println(F("Lost broker connection,restarting")); 
+		#endif
 		MqttConnect();
 	}
 
@@ -184,8 +188,8 @@ void ATTDevice::Send(String value, int id)
 	
 	#ifdef DEBUG																					//don't need to write all of this if not debugging.
 	Serial.print(F("Publish to ")); Serial.print(id); Serial.print(" : "); 
+	Serial.println(message_buff);																
 	#endif
-	Serial.println(message_buff);																	//this value is still useful and generated anyway, so no extra cost.
 	
 	char* Mqttstring_buff;
 	{
@@ -210,7 +214,7 @@ void ATTDevice::MqttSubscribe()
     _mqttclient->subscribe(Mqttstring_buff);
 
 	#ifdef DEBUG
-    Serial.print(F("MQTT Client subscribed"));
+    Serial.println("MQTT Client subscribed");
 	#endif
 }
 
@@ -227,9 +231,13 @@ void ATTDevice::GetHTTPResult()
 	if(_client->available()){
 		while (_client->available()) {
 			char c = _client->read();
+			#ifdef DEBUG
 			Serial.print(c);
+			#endif
 		}
+		#ifdef DEBUG
 		Serial.println();
+		#endif
 	}
 }
 
