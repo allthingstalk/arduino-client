@@ -58,7 +58,10 @@ bool ATTDevice::Connect(Client* httpClient, char httpServer[])
 void ATTDevice::AddAsset(int id, String name, String description, bool isActuator, String type)
 {
     // Make a HTTP request:
-	_client->println("PUT /asset/" + _deviceId +  (char)(id + 48) + " HTTP/1.1");
+	{
+		String idStr(id);
+		_client->println("PUT /asset/" + _deviceId +  idStr  + " HTTP/1.1");
+	}
     _client->print(F("Host: "));
     _client->println(_serverName);
     _client->println(F("Content-Type: application/json"));
@@ -110,7 +113,7 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 }
 
 //connect with the http server and broker
-void ATTDevice::Subscribe(PubSubClient& mqttclient)
+bool ATTDevice::Subscribe(PubSubClient& mqttclient)
 {
 	_mqttclient = &mqttclient;	
 	_serverName = "";					//no longer need this reference.
@@ -120,11 +123,11 @@ void ATTDevice::Subscribe(PubSubClient& mqttclient)
 	_client->flush();
 	_client->stop();
 	_client = NULL;
-	MqttConnect();
+	return MqttConnect();
 }
 
 //tries to create a connection with the mqtt broker. also used to try and reconnect.
-void ATTDevice::MqttConnect()
+bool ATTDevice::MqttConnect()
 {
 	char mqttId[23]; // Or something long enough to hold the longest file name you will ever use.
 	int length = _deviceId.length();
@@ -132,19 +135,20 @@ void ATTDevice::MqttConnect()
     _deviceId.toCharArray(mqttId, length);
 	mqttId[length] = 0;
 	String brokerId = _clientId + ":" + _clientId;
-	while (!_mqttclient->connect(mqttId, (char*)brokerId.c_str(), (char*)_clientKey.c_str())) 
+	if (!_mqttclient->connect(mqttId, (char*)brokerId.c_str(), (char*)_clientKey.c_str())) 
 	{
 		#ifdef DEBUG
 		Serial.print(MQTTSERVTEXT);
 		Serial.println(FAILED_RETRY);
 		#endif
-		delay(RETRYDELAY);
+		return false;
 	}
 	#ifdef DEBUG
 	Serial.print(MQTTSERVTEXT);
 	Serial.println(SUCCESTXT);
 	#endif
 	MqttSubscribe();
+	return true;
 }
 
 //check for any new mqtt messages.
@@ -195,7 +199,7 @@ void ATTDevice::Send(String value, int id)
 	{
 		int length = _clientId.length() + _deviceId.length() + 26;
 		Mqttstring_buff = new char[length];
-		sprintf(Mqttstring_buff, "client/%s/out/asset/%s%c/state", _clientId.c_str(), _deviceId.c_str(), (char)(id + 48));      
+		sprintf(Mqttstring_buff, "client/%s/out/asset/%s%d/state", _clientId.c_str(), _deviceId.c_str(), id);      
 		Mqttstring_buff[length-1] = 0;
 	}
 	_mqttclient->publish(Mqttstring_buff, message_buff);
