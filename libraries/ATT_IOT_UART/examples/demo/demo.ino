@@ -30,9 +30,9 @@
 // Enter below your client credentials. 
 //These credentials can be found in the configuration pane under your device in the smartliving.io website 
 
-#define DEVICEID "devId";                                      // Your device id comes here
-#define CLIENTID "clientId";                                   // Your client id comes here;
-#define CLIENTKEY "clientKey";                                 // Your client key comes here;
+#define DEVICEID "devId"                                      // Your device id comes here
+#define CLIENTID "clientId"                                   // Your client id comes here;
+#define CLIENTKEY "clientKey"                                 // Your client key comes here;
 #define WIFI_SSID "ssid"
 #define WIFI_PWD "pwd"
 
