@@ -60,7 +60,7 @@ void setup()
   
   while(!Device.Connect(&ethClient, httpServer))            // connect the device with the IOT platform.
     Serial.println("retrying");
-  Device.AddAsset(knobPin, "knob", "rotary switch",false, "{'type': 'integer', 'minimum': 0, 'maximum': 1023");
+    Device.AddAsset(knobPin, "knob", "rotary switch",false, "{\"type\": \"integer\", \"minimum\": 0, \"maximum\": 1023}");
   Device.AddAsset(ledPin, "led", "light emitting diode", true, "boolean");
   while(!Device.Subscribe(pubSub))                          // make certain that we can receive message from the iot platform (activate mqtt)
     Serial.println("retrying"); 
