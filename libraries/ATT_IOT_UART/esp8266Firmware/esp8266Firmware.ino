@@ -1,5 +1,9 @@
 #include <ESP8266WiFi.h>
 
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
+
 #include <PubSubClient.h>
 #include <ATT_IOT.h>                            //AllThingsTalk IoT library
 #include <SPI.h>                                //required to have support for signed/unsigned long type..
@@ -25,9 +29,36 @@ int receivedPin;
 bool dataReceived = false;
 char* serverName = NULL;
 
+
+void configModeCallback () {
+  Serial.println("Entered config mode");
+  Serial.println(WiFi.softAPIP());
+}
+
 void setup()
 {         
   Serial.begin(19200);                         // init serial link for debugging                                                              
+  
+  //WiFiManager
+  //Local intialization. Once its business is done, there is no need to keep it around
+  WiFiManager wifiManager;
+  //reset settings - for testing
+  //wifiManager.resetSettings();
+
+  //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
+  wifiManager.setAPCallback(configModeCallback);
+  //fetches ssid and pass and tries to connect
+  //if it does not connect it starts an access point with the specified name
+  //here  "AutoConnectAP"
+  //and goes into a blocking loop awaiting configuration
+  if(!wifiManager.autoConnect("AutoConnectAP")) {
+    Serial.println("failed to connect and hit timeout");
+    //reset and try again, or maybe put it to deep sleep
+    ESP.reset();
+    delay(1000);
+  } 
+  else
+	Serial.println("connected)");						//if you get here you have connected to the WiFi
 }
 
 void serialFlush(){

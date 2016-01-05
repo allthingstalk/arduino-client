@@ -62,8 +62,8 @@ void setup()
   
   while(!Device.Init(DEVICEID, CLIENTID, CLIENTKEY))            //if we can't succeed to initialize and set the device credentials, there is no point to continue
     Serial.println("retrying...");
-  while(!Device.StartWifi(WIFI_SSID, WIFI_PWD))
-	Serial.println("retrying...");
+  //while(!Device.StartWifi(WIFI_SSID, WIFI_PWD))
+	//Serial.println("retrying...");
   while(!Device.Connect(httpServer))                                // connect the device with the IOT platform. No point to continue if we can't succeed at this
     Serial.println("retrying");
   Device.AddAsset(DigitalSensor, "sensor", "Digital Sensor Description", false, "boolean");   // Create the Digital Sensor asset for your device
