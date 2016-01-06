@@ -109,9 +109,7 @@ void connect(char* httpServer)
     serverName = new char[len + 1];
     strncpy(serverName, httpServer, len);
     serverName[len] = 0;
-  
-	Serial.print("connecting to ");
-	Serial.println(serverName);
+
     Device->Connect(&ethClient, serverName);
     serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
 	Serial.println(CMD_CONNECT_OK);
