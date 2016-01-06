@@ -42,9 +42,11 @@ void setup()
   //WiFiManager
   //Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
+  delay(200);                                       //give serial a little time to init
+  Serial.println("Starting wifi");
   //reset settings - for testing
   //wifiManager.resetSettings();
-
+  
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
   wifiManager.setAPCallback(configModeCallback);
   //fetches ssid and pass and tries to connect
@@ -108,6 +110,8 @@ void connect(char* httpServer)
     strncpy(serverName, httpServer, len);
     serverName[len] = 0;
   
+	Serial.print("connecting to ");
+	Serial.println(serverName);
     Device->Connect(&ethClient, serverName);
     serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
 	Serial.println(CMD_CONNECT_OK);
