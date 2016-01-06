@@ -22,6 +22,7 @@ void callback(char* topic, byte* payload, unsigned int length);
 WiFiClient ethClient;
 PubSubClient *pubSub = NULL;  // mqttServer, 1883, callback,
 
+#define SERIALSPEED 19200
 #define INPUTBUFFERSIZE 255
 char inputBuffer[INPUTBUFFERSIZE];                          //the input buffer for receiving commands
 String receivedPayload;
@@ -37,8 +38,7 @@ void configModeCallback () {
 
 void setup()
 {         
-  Serial.begin(19200);                         // init serial link for debugging                                                              
-  
+  Serial.begin(SERIALSPEED);                         // init serial link 
   //WiFiManager
   //Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
@@ -48,17 +48,16 @@ void setup()
   //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
   wifiManager.setAPCallback(configModeCallback);
   //fetches ssid and pass and tries to connect
-  //if it does not connect it starts an access point with the specified name
-  //here  "AutoConnectAP"
+  //if it does not connect it starts an access point with the specified name, here  "iotopia wifi"
   //and goes into a blocking loop awaiting configuration
-  if(!wifiManager.autoConnect("AutoConnectAP")) {
+  if(!wifiManager.autoConnect("iotopia wifi")) {
     Serial.println("failed to connect and hit timeout");
     //reset and try again, or maybe put it to deep sleep
     ESP.reset();
     delay(1000);
   } 
   else
-	Serial.println("connected)");						//if you get here you have connected to the WiFi
+    Serial.println("connected");						//if you get here you have connected to the WiFi
 }
 
 void serialFlush(){
@@ -229,7 +228,7 @@ void loop()
         }
     }
 	if(CommsDone == false){
-		setup();
+		Serial.begin(SERIALSPEED);                         // rest serial link speed, if we don't do this, the handshake with the other device might fail
 		delay(1000);
 	}
 }
