@@ -42,33 +42,31 @@ const char* password = "pwd for your network";
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
 char httpServer[] = "api.smartliving.io";                   // HTTP API Server host                  
-char mqttServer[] = "broker.smartliving.io";        // MQTT Server Address 
+char mqttServer[] = "broker.smartliving.io";                // MQTT Server Address 
 
 
 // Define PIN numbers & id's for assets
 
-int DigitalActuator = D0;                                        // Digital Actuator is connected to pin D0 on nodemcu -> built in led
-int DigitalActuatorId = 4;                                        // the pin numbers go above 9, so we use a separate id for the assets
+int DigitalActuator = D0;                                    // Digital Actuator is connected to pin D0 on nodemcu -> built in led
+int DigitalActuatorId = 4;                                   // the pin numbers go above 9, so we use a separate id for the assets
 
 //required for the device
 void callback(char* topic, byte* payload, unsigned int length);
 WiFiClient ethClient;
-PubSubClient pubSub(mqttServer, 1883, callback,ethClient);  // 
+PubSubClient pubSub(mqttServer, 1883, callback,ethClient);  
 
 void setup()
 {      
-  pinMode(DigitalActuator, OUTPUT);                     // initialize the digital pin as an output.         
-  Serial.begin(9600);                         // init serial link for debugging
+  pinMode(DigitalActuator, OUTPUT);                             // initialize the digital pin as an output.         
+  Serial.begin(9600);                                           // init serial link for debugging
   
   setup_wifi();
-  delay(1000);                                            //give the Ethernet shield a second to initialize:
-  if(Device.Connect(&ethClient, httpServer))                      // connect the device with the IOT platform.
-  {
-    Device.AddAsset(DigitalActuatorId, "YourDigitalActuatorname", "Digital Actuator Description", true, "boolean");   // Create the Digital Actuator asset for your device
-    Device.Subscribe(pubSub);                       // make certain that we can receive message from the iot platform (activate mqtt)
-  }
-  else 
-    while(true);                                                                
+  delay(1000);                                                  //give the Ethernet shield a second to initialize:
+  while(!Device.Connect(&ethClient, httpServer))                // connect the device with the IOT platform.
+    Serial.println("retrying");
+  Device.AddAsset(DigitalActuatorId, "YourDigitalActuatorname", "Digital Actuator Description", true, "boolean");   // Create the Digital Actuator asset for your device
+  while(!Device.Subscribe(pubSub))                              // make certain that we can receive message from the iot platform (activate mqtt)
+    Serial.println("retrying");                                                               
 }
 
 

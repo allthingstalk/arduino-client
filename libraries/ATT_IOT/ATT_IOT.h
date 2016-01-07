@@ -33,8 +33,9 @@ class ATTDevice
 		//note: after this call, the name will be in lower case, so that it can be used to compare with the topic of incomming messages.
 		void AddAsset(int id, String name, String description, bool isActuator, String type);
 
-		/*Stop http processing & make certain that we can receive data from the mqtt server. */
-		void Subscribe(PubSubClient& mqttclient);
+		/*Stop http processing & make certain that we can receive data from the mqtt server. 
+		returns true when successful, false otherwise*/
+		bool Subscribe(PubSubClient& mqttclient);
 		
 		//send a data value to the cloud server for the sensor with the specified id.
 		void Send(String value, int id);
@@ -56,7 +57,7 @@ class ATTDevice
 		void MqttSubscribe();
 		
 		//tries to create a connection with the mqtt broker. also used to try and reconnect.
-		void MqttConnect();
+		bool MqttConnect();
 		
 		//read all the data from the ethernet card and display on the debug screen.
 		void GetHTTPResult();
