@@ -65,17 +65,20 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
     _client->print(F("Auth-ClientKey: "));_client->println(_clientKey);
     _client->print(F("Auth-ClientId: "));_client->println(_clientId); 
 	
+	int typeLength = type.length();
 	_client->print(F("Content-Length: "));
 	{																					//make every mem op local, so it is unloaded asap
-		int length = name.length() + description.length() + type.length() + _deviceId.length();
+		int length = name.length() + description.length() + typeLength + _deviceId.length();
 		if(isActuator) 
 			length += 8;
 		else 
 			length += 6;
-		if(type[0] == '{')
-			 length += 64;
-		 else
-			 length += 77;
+		if (typeLength == 0)
+			length += 54;
+		else if(type[0] == '{')
+			length += 64;
+		else
+			length += 77;
 		_client->println(length);
 	}
     _client->println();
@@ -89,7 +92,9 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 		_client->print(F("actuator"));
 	else 
 		_client->print(F("sensor"));
-	if(type[0] == '{'){
+	if(typeLength == 0)
+		_client->print(F("\""));
+	else if(type[0] == '{'){
 		_client->print(F("\",\"profile\": "));
 		_client->print(type);
 	}
@@ -104,7 +109,6 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 	_client->println();
     _client->println();
 	
- 
     delay(ETHERNETDELAY);
 	GetHTTPResult();			//get the response from the server and show it.
 }
