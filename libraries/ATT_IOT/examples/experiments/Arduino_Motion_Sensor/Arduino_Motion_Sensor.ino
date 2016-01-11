@@ -4,7 +4,7 @@
 #include <PubSubClient.h>
 
 #include <ATT_IOT.h>  // SmartLiving for Makers Arduino Library
-#include <SPI.h>                                  //required to have support for signed/unsigned long type.			
+#include <SPI.h>                                  //required to have support for signed/unsigned long type.         
 
 /*
   PIR Motion Sensor SmartLiving Makers Arduino Example
@@ -33,7 +33,7 @@ char clientKey[] = ""; // Your client key comes here;
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
 char httpServer[] = "api.smartliving.io";                   // HTTP API Server host                  
-char mqttServer[] = "broker.smartliving.io";		    // MQTT Server IP Address
+char mqttServer[] = "broker.smartliving.io";                // MQTT Server IP Address
 
 int PIR_MOTION_SENSOR = 2;                                  // Define PIN number on shield & also used to construct Unique AssetID                      
 int LED = 8;                                                // Define PIN number on shield & also used to construct Unique AssetID
@@ -49,31 +49,29 @@ void setup()
   pinMode(PIR_MOTION_SENSOR, INPUT);
   pinMode(LED,OUTPUT);
   
-  Serial.begin(9600);							         // init serial link for debugging
+  Serial.begin(9600);                                           // init serial link for debugging
   
-  byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0x8D, 0x3D }; 	    // Adapt to your Arduino MAC Address  
-  if (Ethernet.begin(mac) == 0) 				                // Initialize the Ethernet connection:
-  {	
+  byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0x8D, 0x3D };         // Adapt to your Arduino MAC Address  
+  if (Ethernet.begin(mac) == 0)                                 // Initialize the Ethernet connection:
+  { 
     Serial.println(F("DHCP failed,end"));
-    while(true);							        //we failed to connect, halt execution here. 
+    while(true);                                                //we failed to connect, halt execution here. 
   }
-  delay(1000);							                //give the Ethernet shield a second to initialize:
+  delay(1000);                                                  //give the Ethernet shield a second to initialize:
   
-  if(Device.Connect(&ethClient, httpServer))					         // connect the device with the IOT platform.
-  {
-    Device.AddAsset(PIR_MOTION_SENSOR, "PIR", "Motion Sensor", false, "boolean");   // Create the asset for your device
-    Device.AddAsset(LED, "LED", "Light Emitting Diode", true, "boolean");           // Create the asset for your device
-    Device.Subscribe(pubSub);						         // make certain that we can receive message from the iot platform (activate mqtt)
-  }
-  else 
-    while(true);                                                                 //can't set up the device on the cloud, can't continue, so put the app in an ethernal loop so it doesn't do anything else anymore.								
+  while(!Device.Connect(&ethClient, httpServer))                // connect the device with the IOT platform.
+    Serial.println("retrying");
+  Device.AddAsset(PIR_MOTION_SENSOR, "PIR", "Motion Sensor", false, "boolean");   // Create the asset for your device
+  Device.AddAsset(LED, "LED", "Light Emitting Diode", true, "boolean");           // Create the asset for your device
+  while(!Device.Subscribe(pubSub))                                  // make certain that we can receive message from the iot platform (activate mqtt)
+    Serial.println("retrying");     
 }
 
-bool Motion = false;							        
+bool Motion = false;                                    
 void loop()
 {
-  bool MotionRead = digitalRead(PIR_MOTION_SENSOR);			        // read status 
-  if (Motion != MotionRead) 				                        // verify if value has changed
+  bool MotionRead = digitalRead(PIR_MOTION_SENSOR);                 // read status 
+  if (Motion != MotionRead)                                         // verify if value has changed
   {
     Motion = MotionRead;
     delay(100);                                                                 // eliminate bounce effect
@@ -91,33 +89,33 @@ void callback(char* topic, byte* payload, unsigned int length)
 { 
   String msgString; 
   {                                                            //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
-	char message_buff[length + 1];	                       //need to copy over the payload so that we can add a /0 terminator, this can then be wrapped inside a string for easy manipulation.
-	strncpy(message_buff, (char*)payload, length);         //copy over the data
-	message_buff[length] = '\0';		               //make certain that it ends with a null			
-		  
-	msgString = String(message_buff);
-	msgString.toLowerCase();			       //to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent)
+    char message_buff[length + 1];                         //need to copy over the payload so that we can add a /0 terminator, this can then be wrapped inside a string for easy manipulation.
+    strncpy(message_buff, (char*)payload, length);         //copy over the data
+    message_buff[length] = '\0';                       //make certain that it ends with a null          
+          
+    msgString = String(message_buff);
+    msgString.toLowerCase();                   //to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent)
   }
   int* idOut = NULL;
-  {	                                                       //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
-	int pinNr = Device.GetPinNr(topic, strlen(topic));
-	
-	Serial.print("Payload: ");                             //show some debugging.
-	Serial.println(msgString);
-	Serial.print("topic: ");
-	Serial.println(topic);
-	
-	if (pinNr == LED)
-	{
-	  if (msgString == "false") {
-            digitalWrite(LED, LOW);		      
-            idOut = &LED;		                        
-	  }
-	  else if (msgString == "true") {
-	    digitalWrite(LED, HIGH);                   
+  {                                                        //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
+    int pinNr = Device.GetPinNr(topic, strlen(topic));
+    
+    Serial.print("Payload: ");                             //show some debugging.
+    Serial.println(msgString);
+    Serial.print("topic: ");
+    Serial.println(topic);
+    
+    if (pinNr == LED)
+    {
+      if (msgString == "false") {
+            digitalWrite(LED, LOW);           
+            idOut = &LED;                               
+      }
+      else if (msgString == "true") {
+        digitalWrite(LED, HIGH);                   
             idOut = &LED;
-	  }
-	}
+      }
+    }
   }
   if(idOut != NULL)                                            //also let the iot platform know that the operation was succesful: give it some feedback. This also allows the iot to update the GUI's correctly & run scenarios.
     Device.Send(msgString, *idOut);    
