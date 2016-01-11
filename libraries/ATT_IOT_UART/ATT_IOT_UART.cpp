@@ -73,12 +73,12 @@ void ATTDevice::writeCommand(const char* command, String& param1, String& param2
 
 void ATTDevice::sendParam(String& param)
 {
-    for(int i = 0; i < param.length(); i++)
+    for(unsigned int i = 0; i < param.length(); i++)
     {
         char toSend = param.charAt(i);
-        if(toSend == ';')
-            _stream->print("\;");
-        else
+        //if(toSend == ';')
+        //    _stream->print("\;");
+        //else
             _stream->print(toSend);
     }
 }
@@ -88,23 +88,30 @@ void ATTDevice::sendParam(String& param)
 bool ATTDevice::expectString(const char* str, unsigned short timeout, bool report)
 {
     unsigned long start = millis();
+	bool pointsDrawn = false;
     while (timeout == 0 || millis() < start + timeout)          //if timeout = 0, we wait indefinetly
     {
-        #ifdef DEBUG    
-        Serial.print(".");
-        #endif
-
         if (readLn() > 0)
         {
-			Serial.println();	
             // TODO make more strict?
             if (strstr(this->inputBuffer, str) != NULL)         //the serial modem can return debug statements or the expected string, allow for both.
 				return true;
-			#ifdef DEBUG        
-			if(report)
+			else if (strstr(this->inputBuffer, STR_RESULT_NOK) != NULL)         //the serial modem can return debug statements or the expected string, allow for both.
+				return false;
+			if(report){
+				if(pointsDrawn){										//for some pretty printing: if ... were drawn, start a new line for logging
+					pointsDrawn = false;
+					Serial.println("");
+				}
 				Serial.println(this->inputBuffer);					//only show on screen if it's not an 'ok' response.			
-            #endif
+			}
         }
+		#ifdef DEBUG    
+		else{
+			Serial.print(".");
+			pointsDrawn = true;
+		}
+        #endif
     }
     return false;
 }
@@ -144,26 +151,11 @@ unsigned short ATTDevice::readLn(char* buffer, unsigned short size, unsigned sho
 bool ATTDevice::Init(String deviceId, String clientId, String clientKey)
 {
     #ifdef DEBUG
-    Serial.println(F("initializing serial connection with wifi module"));
+    Serial.println(F("setting device credentials"));
     #endif
-	
-	_stream->println(CMD_AT);                   //first send the at command to synchronize: we have something to wait for an 'ok' ->could be that the wifi chip is still processing a prev command and returns 'ok', in which case the new 'init' is lost.
-    bool res = expectString(CMD_AT_OK, 2000, false);	//for init, we use a shorter wait period, so that the main application can retry quickly (resend the AT, so that the remote wifi can sync).
-	if(res == false){							//if the AT command fails the first time, it could be that the remote wifi is still doing something else, so wait until it has returned any string and try again.	
-		expectAny();
-		_stream->println(CMD_AT);
-		res = expectString(CMD_AT_OK, 2000, false);
-	}
-	if(res == false){
-		#ifdef DEBUG
-		Serial.print(UARTINITTEXT);
-		Serial.println(FAILED);
-		#endif
-		return res;
-	}
-	
+		
     writeCommand(CMD_INIT, deviceId, clientId, clientKey);
-    res = expectString(CMD_INIT_OK, 2000);		//for init, we use a shorter wait period, so that the main application can retry quickly (resend the AT, so that the remote wifi can sync).
+    bool res = expectString(CMD_INIT_OK, 2000);		//for init, we use a shorter wait period, so that the main application can retry quickly (resend the AT, so that the remote wifi can sync).
     #ifdef DEBUG	
     if(res == false){
         Serial.print(UARTINITTEXT);
@@ -174,19 +166,19 @@ bool ATTDevice::Init(String deviceId, String clientId, String clientKey)
 }
 
 /*Start up the wifi network*/
-bool ATTDevice::StartWifi(String ssid, String pwd)
+bool ATTDevice::StartWifi()
 {
     #ifdef DEBUG
     Serial.println("starting wifi");
     #endif
-    writeCommand(CMD_WIFI, ssid, pwd);
-    bool res = expectString(CMD_WIFI_OK, 0);    //we wait indefinitely
-    #ifdef DEBUG
-    if(res == false)
-        Serial.println("failed to start wifi");
-    else
-        Serial.println("wifi started");
-    #endif
+    _stream->println(CMD_AT);                   //first send the at command to synchronize: we have something to wait for an 'ok' ->could be that the wifi chip is still processing a prev command and returns 'ok', in which case the new 'init' is lost.
+    bool res = expectString(CMD_AT_OK, 1000, false);	//if response, wifi is already set ok, otherwise wifi switched to router, we show the correct message to the user (otherwise the wifi module has to do 2 things: it's most likely already started the wifi server, but we want to send commands to it, which doesn't work
+	if(res == false){
+		Serial.println("The wifi module did not find a wifi router. The module will now switch to router mode");
+		Serial.println("Please use another device to connect to 'iotopia wifi'");
+		Serial.println("Browse to 192.168.4.1 and set the SSID and password");
+		res = expectString(CMD_AT_OK, 0, false);
+	}
 	return res;
 }
 

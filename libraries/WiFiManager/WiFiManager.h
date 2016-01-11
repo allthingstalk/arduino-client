@@ -125,6 +125,7 @@ private:
 
     template <typename Generic>
     void DEBUG_PRINT(Generic text);
+
 };
 
 

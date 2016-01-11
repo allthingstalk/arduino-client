@@ -13,7 +13,7 @@ Original author: Peter Leemans (2014)
 #include "Arduino.h"
 #include <string.h>
 
-#define DEFAULT_INPUT_BUFFER_SIZE 96
+#define DEFAULT_INPUT_BUFFER_SIZE 255
 #define DEFAULT_TIMEOUT 40000
 
 #define DEBUG					//turns on debugging in the IOT library. comment out this line to save memory.
@@ -36,7 +36,7 @@ class ATTDevice
 		
 		/*Start up the wifi network
 		blocks until connection has been made*/
-		bool StartWifi(String ssid, String pwd);
+		bool StartWifi();
 		
 		/*connect with the http server (call first)
 		-Client: the client object to use for communicating with the cloud HTTP server (this is usually an EthernetClient, WifiClient or similar)

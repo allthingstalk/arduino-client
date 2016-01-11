@@ -167,7 +167,7 @@ String WiFiManager::getSSID() {
   if (_ssid == "") {
     DEBUG_PRINT(F("Reading SSID"));
     _ssid = WiFi.SSID();//getEEPROMString(0, 32);
-    DEBUG_PRINT(F("SSID: "));
+    DEBUG_PRINT("SSID: " + _ssid);
     DEBUG_PRINT(_ssid);
   }
   return _ssid;
@@ -391,7 +391,7 @@ void WiFiManager::handleWifiSave() {
 }
 
 void WiFiManager::handle204() {
-  DEBUG_PRINT(F("204 No Response"));  
+  //DEBUG_PRINT(F("204 No Response"));  
   server->sendHeader("Cache-Control", "no-cache, no-store, must-revalidate");
   server->sendHeader("Pragma", "no-cache");
   server->sendHeader("Expires", "-1");
@@ -442,7 +442,6 @@ void WiFiManager::setAPCallback( void (*func)(void) ) {
 template <typename Generic>
 void WiFiManager::DEBUG_PRINT(Generic text) {
   if(_debug) {
-    Serial.print("*WM: ");
     Serial.println(text);    
   }
 }
