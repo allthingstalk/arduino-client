@@ -158,8 +158,8 @@ void WiFiManager::connectWifi(String ssid, String pass) {
   //WiFi.disconnect();
   WiFi.begin(ssid.c_str(), pass.c_str());
   int connRes = WiFi.waitForConnectResult();
-  DEBUG_PRINT ("Connection result: ");
-  DEBUG_PRINT ( connRes );
+  //DEBUG_PRINT ("Connection result: ");
+  //DEBUG_PRINT ( connRes );
 }
 
 
@@ -168,7 +168,6 @@ String WiFiManager::getSSID() {
     DEBUG_PRINT(F("Reading SSID"));
     _ssid = WiFi.SSID();//getEEPROMString(0, 32);
     DEBUG_PRINT("SSID: " + _ssid);
-    DEBUG_PRINT(_ssid);
   }
   return _ssid;
 }

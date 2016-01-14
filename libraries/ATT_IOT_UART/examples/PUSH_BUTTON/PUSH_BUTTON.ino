@@ -26,7 +26,7 @@
 
 #include "ATT_IOT_UART.h"                       //AllThingsTalk Arduino UART IoT library
 #include <SPI.h>                                //required to have support for signed/unsigned long type.
-#include "settings.h"                           //keep all your personal account information in a seperate file
+#include "keys.h"                           //keep all your personal account information in a seperate file
 
 ATTDevice Device(&Serial1);                  
 char httpServer[] = "api.smartliving.io";                       // HTTP API Server host                  
@@ -42,10 +42,9 @@ void callback(int pin, String& value);
 void setup() 
 {
   pinMode(DigitalSensor, INPUT);                                // initialize the digital pin as an input.          
-  Serial.begin(19200);                                         // init serial link for debugging
-  
+  Serial.begin(57600);                                         // init serial link for debugging
   while (!Serial) ;                                            // This line makes sure you see all output on the monitor. REMOVE THIS LINE if you want your IoT board to run without monitor !
-  Serial.println("Starting the Genuino 101 board");
+  Serial.println("Starting sketch");
   Serial1.begin(115200);                                       //init serial link for wifi module
   while(!Serial1);
   

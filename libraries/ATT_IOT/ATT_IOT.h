@@ -10,7 +10,7 @@ Original author: Peter Leemans (2014)
 #ifndef ATTDevice_h
 #define ATTDevice_h
 
-#include "Arduino.h"
+//#include "Arduino.h"
 #include <Client.h>
 #include <PubSubClient.h>
 #include <string.h>

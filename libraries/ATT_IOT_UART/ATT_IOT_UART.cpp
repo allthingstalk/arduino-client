@@ -93,7 +93,6 @@ bool ATTDevice::expectString(const char* str, unsigned short timeout, bool repor
     {
         if (readLn() > 0)
         {
-            // TODO make more strict?
             if (strstr(this->inputBuffer, str) != NULL)         //the serial modem can return debug statements or the expected string, allow for both.
 				return true;
 			else if (strstr(this->inputBuffer, STR_RESULT_NOK) != NULL)         //the serial modem can return debug statements or the expected string, allow for both.
@@ -151,6 +150,7 @@ unsigned short ATTDevice::readLn(char* buffer, unsigned short size, unsigned sho
 bool ATTDevice::Init(String deviceId, String clientId, String clientKey)
 {
     #ifdef DEBUG
+	Serial.println();
     Serial.println(F("setting device credentials"));
     #endif
 		
@@ -172,10 +172,13 @@ bool ATTDevice::StartWifi()
     Serial.println("starting wifi");
     #endif
     _stream->println(CMD_AT);                   //first send the at command to synchronize: we have something to wait for an 'ok' ->could be that the wifi chip is still processing a prev command and returns 'ok', in which case the new 'init' is lost.
-    bool res = expectString(CMD_AT_OK, 1000, false);	//if response, wifi is already set ok, otherwise wifi switched to router, we show the correct message to the user (otherwise the wifi module has to do 2 things: it's most likely already started the wifi server, but we want to send commands to it, which doesn't work
+    bool res = expectString(CMD_AT_OK, 1000, true);	//if response, wifi is already set ok, otherwise wifi switched to router, we show the correct message to the user (otherwise the wifi module has to do 2 things: it's most likely already started the wifi server, but we want to send commands to it, which doesn't work
+	if(res == false)									//try the command 1 more time, could be that user did reset, in which case the wifi module might wake up a little too late to see that AT command
+		res = expectString(CMD_AT_OK, 1000, true);
 	if(res == false){
-		Serial.println("The wifi module did not find a wifi router. The module will now switch to router mode");
-		Serial.println("Please use another device to connect to 'iotopia wifi'");
+		Serial.println();
+		Serial.println("The wifi module could not connect to the wifi router. The module will now switch to router mode");
+		Serial.println("Please use another device to connect to 'ESP8266 wifi'");
 		Serial.println("Browse to 192.168.4.1 and set the SSID and password");
 		res = expectString(CMD_AT_OK, 0, false);
 	}

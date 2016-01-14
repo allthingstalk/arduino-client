@@ -37,21 +37,22 @@ bool ATTDevice::Connect(Client* httpClient, char httpServer[])
     Serial.println(httpServer);
 	#endif
 
-	while (!_client->connect(httpServer, 80)) 		// if you get a connection, report back via serial:
+	if (!_client->connect(httpServer, 80)) 		// if you get a connection, report back via serial:
 	{
 		#ifdef DEBUG
 		Serial.print(HTTPSERVTEXT);
 		Serial.println(FAILED_RETRY);
 		#endif
-		delay(RETRYDELAY);
+		return false;									//we have created a connection succesfully.
 	}
-
-	#ifdef DEBUG
-	Serial.print(HTTPSERVTEXT);
-	Serial.println(SUCCESTXT);
-	#endif
-	delay(ETHERNETDELAY);							// another small delay: sometimes the card is not yet ready to send the asset info.
-	return true;									//we have created a connection succesfully.
+	else{
+		#ifdef DEBUG
+		Serial.print(HTTPSERVTEXT);
+		Serial.println(SUCCESTXT);
+		#endif
+		delay(ETHERNETDELAY);							// another small delay: sometimes the card is not yet ready to send the asset info.
+		return true;									//we have created a connection succesfully.
+	}
 }
 
 //create or update the specified asset.
@@ -112,7 +113,9 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 	_client->println();
     _client->println();
 	
-    delay(ETHERNETDELAY);
+	unsigned long maxTime = millis() + 1000;
+	while(millis() < maxTime)		//wait, but for the minimum amount of time.
+		if(_client->available()) break;
 	GetHTTPResult();			//get the response from the server and show it.
 }
 
@@ -121,12 +124,14 @@ bool ATTDevice::Subscribe(PubSubClient& mqttclient)
 {
 	_mqttclient = &mqttclient;	
 	_serverName = "";					//no longer need this reference.
-	#ifdef DEBUG
-	Serial.println(F("Stopping HTTP"));
-	#endif
-	_client->flush();
-	_client->stop();
-	_client = NULL;
+	if(_client){
+		#ifdef DEBUG
+		Serial.println(F("Stopping HTTP"));
+		#endif
+		_client->flush();
+		_client->stop();
+		_client = NULL;
+	}
 	return MqttConnect();
 }
 
@@ -138,21 +143,30 @@ bool ATTDevice::MqttConnect()
 	length = length > 22 ? 22 : length;
     _deviceId.toCharArray(mqttId, length);
 	mqttId[length] = 0;
-	String brokerId = _clientId + ":" + _clientId;
-	if (!_mqttclient->connect(mqttId, (char*)brokerId.c_str(), (char*)_clientKey.c_str())) 
-	{
+	if(_clientId && _clientKey){
+		String brokerId = _clientId + ":" + _clientId;
+		if (!_mqttclient->connect(mqttId, (char*)brokerId.c_str(), (char*)_clientKey.c_str())) 
+		{
+			#ifdef DEBUG
+			Serial.print(MQTTSERVTEXT);
+			Serial.println(FAILED_RETRY);
+			#endif
+			return false;
+		}
 		#ifdef DEBUG
 		Serial.print(MQTTSERVTEXT);
-		Serial.println(FAILED_RETRY);
+		Serial.println(SUCCESTXT);
+		#endif
+		MqttSubscribe();
+		return true;
+	}
+	else{
+		#ifdef DEBUG
+		Serial.print(MQTTSERVTEXT);
+		Serial.println("failed: invalid credentials");
 		#endif
 		return false;
 	}
-	#ifdef DEBUG
-	Serial.print(MQTTSERVTEXT);
-	Serial.println(SUCCESTXT);
-	#endif
-	MqttSubscribe();
-	return true;
 }
 
 //check for any new mqtt messages.

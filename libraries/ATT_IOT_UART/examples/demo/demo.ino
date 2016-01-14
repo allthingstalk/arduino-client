@@ -1,6 +1,3 @@
-
-#include "ATT_IOT_UART.h"                            //AllThingsTalk IoT library
-#include <SPI.h>                                //required to have support for signed/unsigned long type.
 /*
   SmartLiving Makers Arduino UART Demo Sketch
   version 1.0 dd 25/11/2015
@@ -26,12 +23,12 @@
 
 */
 
+#include "ATT_IOT_UART.h"                            //AllThingsTalk IoT library
+#include <SPI.h>                                //required to have support for signed/unsigned long type.
+#include "keys.h"
+
 // Enter below your client credentials. 
 //These credentials can be found in the configuration pane under your device in the smartliving.io website 
-
-#define DEVICEID "devId"                                      // Your device id comes here
-#define CLIENTID "clientId"                                   // Your client id comes here;
-#define CLIENTKEY "clientKey"                                 // Your client key comes here;
 
 ATTDevice Device(&Serial1);                  
 char httpServer[] = "api.smartliving.io";                       // HTTP API Server host                  
@@ -51,10 +48,9 @@ void setup()
 {
   pinMode(DigitalSensor, INPUT);                                // initialize the digital pin as an input.          
   pinMode(DigitalActuator, OUTPUT);                             // initialize the digital pin as an output.          
-  Serial.begin(19200);                                          // init serial link for debugging
-  
+  Serial.begin(57600);                                          // init serial link for debugging
   while(!Serial);
-  Serial.println("Starting the Genuino 101 board");
+  Serial.println("Starting sketch");
   Serial1.begin(115200);                                        //init software serial link for wifi
   while(!Serial1);
   
@@ -87,7 +83,6 @@ void loop()
         Device.Send("false", DigitalSensor);
   }
   Device.Process(); 
-  delay(1000);
 }
 
 

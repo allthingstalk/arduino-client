@@ -13,7 +13,7 @@ Original author: Peter Leemans (2014)
 #include "Arduino.h"
 #include <string.h>
 
-#define DEFAULT_INPUT_BUFFER_SIZE 255
+#define DEFAULT_INPUT_BUFFER_SIZE 400
 #define DEFAULT_TIMEOUT 40000
 
 #define DEBUG					//turns on debugging in the IOT library. comment out this line to save memory.

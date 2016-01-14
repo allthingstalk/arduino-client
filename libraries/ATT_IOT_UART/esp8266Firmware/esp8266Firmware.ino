@@ -46,16 +46,16 @@ bool startWifi()
 {
     //Local intialization. Once its business is done, there is no need to keep it around
     WiFiManager wifiManager;
-    Serial.println("Starting wifi");
+	delay(200);
     //reset settings - for testing
     //wifiManager.resetSettings();
 
     //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
     wifiManager.setAPCallback(configModeCallback);
     //fetches ssid and pass and tries to connect
-    //if it does not connect it starts an access point with the specified name, here  "iotopia wifi"
+    //if it does not connect it starts an access point with the specified name, here  "ESP8266 wifi"
     //and goes into a blocking loop awaiting configuration
-    if(!wifiManager.autoConnect("iotopia wifi")) {
+    if(!wifiManager.autoConnect("ESP8266 wifi")) {
         Serial.println("failed to connect and hit timeout");
         //reset and try again, or maybe put it to deep sleep
         ESP.reset();
@@ -133,7 +133,7 @@ void addAsset(char* startOfParams)
     if(strcmp(next, "true") == 0) isActuator = true;
 
     Device->AddAsset(pin, name, description, isActuator, type);
-    delay(1000);
+    delay(100);										//the client needs some time to sync, without this, the client doesn't know that the operation stopped
     serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
     Serial.println(CMD_ADDASSET_OK);
 }          
