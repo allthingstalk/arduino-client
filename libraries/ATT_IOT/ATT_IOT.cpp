@@ -243,7 +243,12 @@ void ATTDevice::MqttSubscribe()
 //returns the pin nr found in the topic
 int ATTDevice::GetPinNr(char* topic, int topicLength)
 {
-	return topic[topicLength - 9] - 48;
+	int result = topic[topicLength - 9] - 48;
+	
+    if(topic[topicLength - 9 - sizeof(deviceId)] != '/'){
+        result += (topic[topicLength - 10] - 48) * 10;
+	}		
+    return result;
 }
 
 void ATTDevice::GetHTTPResult()
