@@ -37,6 +37,11 @@ class ATTDevice
 		returns true when successful, false otherwise*/
 		bool Subscribe(PubSubClient& mqttclient);
 		
+		/*Stop http processing & make certain that we can receive data from the mqtt server, given the specified username and pwd.
+		  This Subscribe function can be used to connect to a fog gateway
+		returns true when successful, false otherwise*/
+		bool Subscribe(PubSubClient& mqttclient, const char* username, const char* pwd);
+		
 		//send a data value to the cloud server for the sensor with the specified id.
 		void Send(String value, int id);
 	
@@ -52,6 +57,9 @@ class ATTDevice
 		String _clientKey;				//the client key provided by the user.
 		Client* _client;			//raw http communication. Possible to save some memory here: pass the client as a param in connect, put the object local in the setup function.
 		PubSubClient* _mqttclient;		//provides mqtt support
+		
+		const char* _mqttUserName;		//we store a local copy of the the mqtt username and pwd, so we can auto reconnect if the connection was lost.
+		const char* _mqttpwd;	
 		
 		//subscribe to the mqtt topic so we can receive data from the server.
 		void MqttSubscribe();

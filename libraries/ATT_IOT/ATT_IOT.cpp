@@ -115,12 +115,33 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 	
 	unsigned long maxTime = millis() + 1000;
 	while(millis() < maxTime)		//wait, but for the minimum amount of time.
+	{
 		if(_client->available()) break;
+		else delay(10);
+	}
 	GetHTTPResult();			//get the response from the server and show it.
 }
 
 //connect with the http server and broker
 bool ATTDevice::Subscribe(PubSubClient& mqttclient)
+{
+	if(_clientId && _clientKey){
+		String brokerId = _clientId + ":" + _clientId;
+		return Subscribe(mqttclient, brokerId.c_str(), _clientKey.c_str());
+	}
+	else{
+		#ifdef DEBUG
+		Serial.print(MQTTSERVTEXT);
+		Serial.println("failed: invalid credentials");
+		#endif
+		return false;
+	}
+}
+
+/*Stop http processing & make certain that we can receive data from the mqtt server, given the specified username and pwd.
+  This Subscribe function can be used to connect to a fog gateway
+returns true when successful, false otherwise*/
+bool ATTDevice::Subscribe(PubSubClient& mqttclient, const char* username, const char* pwd)
 {
 	_mqttclient = &mqttclient;	
 	_serverName = "";					//no longer need this reference.
@@ -132,6 +153,8 @@ bool ATTDevice::Subscribe(PubSubClient& mqttclient)
 		_client->stop();
 		_client = NULL;
 	}
+	_mqttUserName = username;
+	_mqttpwd = pwd;
 	return MqttConnect();
 }
 
@@ -143,9 +166,8 @@ bool ATTDevice::MqttConnect()
 	length = length > 22 ? 22 : length;
     _deviceId.toCharArray(mqttId, length);
 	mqttId[length] = 0;
-	if(_clientId && _clientKey){
-		String brokerId = _clientId + ":" + _clientId;
-		if (!_mqttclient->connect(mqttId, (char*)brokerId.c_str(), (char*)_clientKey.c_str())) 
+	if(_mqttUserName && _mqttpwd){
+		if (!_mqttclient->connect(mqttId, (char*)_mqttUserName, (char*)_mqttpwd)) 
 		{
 			#ifdef DEBUG
 			Serial.print(MQTTSERVTEXT);
@@ -245,7 +267,7 @@ int ATTDevice::GetPinNr(char* topic, int topicLength)
 {
 	int result = topic[topicLength - 9] - 48;
 	
-    if(topic[topicLength - 9 - sizeof(deviceId)] != '/'){
+    if(topic[topicLength - 9 - sizeof(_deviceId)] != '/'){
         result += (topic[topicLength - 10] - 48) * 10;
 	}		
     return result;
