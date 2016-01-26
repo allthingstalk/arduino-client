@@ -87,7 +87,7 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
     // Make a HTTP request:
 	{
 		String idStr(id);
-		_client->println("PUT /asset/" + _deviceId +  idStr  + " HTTP/1.1");
+		_client->println("PUT /device/" + _deviceId + "/asset/" + idStr  + " HTTP/1.1");
 	}
     _client->print(F("Host: "));
     _client->println(_serverName);
@@ -256,9 +256,9 @@ void ATTDevice::Send(String value, int id)
 	
 	char* Mqttstring_buff;
 	{
-		int length = _clientId.length() + _deviceId.length() + 26;
+		int length = _clientId.length() + _deviceId.length() + 33;
 		Mqttstring_buff = new char[length];
-		sprintf(Mqttstring_buff, "client/%s/out/asset/%s%d/state", _clientId.c_str(), _deviceId.c_str(), id);      
+		sprintf(Mqttstring_buff, "client/%s/out/device/%s/asset/%d/state", _clientId.c_str(), _deviceId.c_str(), id);      
 		Mqttstring_buff[length-1] = 0;
 	}
 	_mqttclient->publish(Mqttstring_buff, message_buff);
@@ -284,11 +284,15 @@ void ATTDevice::MqttSubscribe()
 //returns the pin nr found in the topic
 int ATTDevice::GetPinNr(char* topic, int topicLength)
 {
-	int result = topic[topicLength - 9] - 48;
+	char digitOffset = 9;						//skip the '/command' at the end of the topic
+	int result = topic[topicLength - digitOffset] - 48; 		// - 48 to convert digit-char to integer
 	
-	//Serial.print("char before id: "); Serial.println(topic[topicLength - 10 - _deviceId.length()]);
-    if(topic[topicLength - 10 - _deviceId.length()] != '/'){
-        result += (topic[topicLength - 10] - 48) * 10;
+	digitOffset++;
+    while(topic[topicLength - digitOffset] != '/'){
+		int nextDigit = topic[topicLength - 10] - 48;
+		while(int i = 9; < dig; i++)
+			nextDigit =* 10;
+        result += nextDigit;
 	}		
     return result;
 }
