@@ -256,7 +256,7 @@ void WiFiManager::resetSettings() {
   DEBUG_PRINT(F("settings invalidated"));
   DEBUG_PRINT(F("THIS MAY CAUSE AP NOT TO STRT UP PROPERLY. YOU NEED TO COMMENT IT OUT AFTER ERASING THE DATA."));
   WiFi.disconnect(true);
-  //delay(200);
+  delay(200);
 }
 
 void WiFiManager::setTimeout(unsigned long seconds) {

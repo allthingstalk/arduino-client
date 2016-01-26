@@ -4,6 +4,7 @@
 #define STR_RESULT_NOK "nok"
 
 #define CMD_AT "AT"
+#define CMD_AT_RESET_WIFI "ATW"
 #define CMD_CONNECT "ATC"
 #define CMD_INIT "ATI"
 #define CMD_ADDASSET "ATA"
@@ -13,6 +14,7 @@
 
 
 #define CMD_AT_OK STR_RESULT_OK "AT"
+#define CMD_AT_RESET_WIFI_OK STR_RESULT_OK "ATW"
 #define CMD_CONNECT_OK STR_RESULT_OK "ATC"
 #define CMD_INIT_OK STR_RESULT_OK "ATI"
 #define CMD_ADDASSET_OK STR_RESULT_OK "ATA"

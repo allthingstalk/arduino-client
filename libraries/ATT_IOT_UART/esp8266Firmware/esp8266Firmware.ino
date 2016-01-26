@@ -42,30 +42,35 @@ void setup()
   delay(200);                                       //give serial a little time to init
 }
 
-bool startWifi()
+bool startWifi(bool forceReset)
 {
     //Local intialization. Once its business is done, there is no need to keep it around
     WiFiManager wifiManager;
 	delay(200);
     //reset settings - for testing
-    //wifiManager.resetSettings();
-
-    //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
-    wifiManager.setAPCallback(configModeCallback);
-    //fetches ssid and pass and tries to connect
-    //if it does not connect it starts an access point with the specified name, here  "ESP8266 wifi"
-    //and goes into a blocking loop awaiting configuration
-    if(!wifiManager.autoConnect("ESP8266 wifi")) {
-        Serial.println("failed to connect and hit timeout");
-        //reset and try again, or maybe put it to deep sleep
-        ESP.reset();
-        delay(1000);
-        return false;
-    } 
-    else{
-        Serial.println("connected");                        //if you get here you have connected to the WiFi
-        return true;
-    }
+	if(forceReset){											//if we reset the wifi, then the client lib will ask to start the wifi a second time, that's when we handle it properly
+		if(Device)
+			Device->Close();									//make certain that any previous connections are closed, if required.
+		wifiManager.resetSettings();
+		delay(500);											//give the serial a little bit of time to write + the wifi module has to update it's flash, which also takes a little time	
+	}
+	
+	//set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
+	wifiManager.setAPCallback(configModeCallback);
+	//fetches ssid and pass and tries to connect
+	//if it does not connect it starts an access point with the specified name, here  "ESP8266 wifi"
+	//and goes into a blocking loop awaiting configuration
+	if(!wifiManager.autoConnect("ESP8266 wifi")) {
+		Serial.println("failed to connect and hit timeout");
+		//reset and try again, or maybe put it to deep sleep
+		ESP.reset();
+		delay(1000);
+		return false;
+	} 
+	else{
+		Serial.println("connected");                        //if you get here you have connected to the WiFi
+		return true;
+	}
 }
 
 void serialFlush(){
@@ -185,9 +190,17 @@ void loop()
             *separator = 0;
             ++separator;
         }
-        if(strcmp(inputBuffer, CMD_AT) == 0){
+		if(strcmp(inputBuffer, CMD_AT_RESET_WIFI) == 0){
+			serialFlush();
+            if(startWifi(true))
+                Serial.println(CMD_AT_RESET_WIFI_OK);
+            else
+                Serial.println(STR_RESULT_NOK);
+            CommsDone = true;
+		}
+        else if(strcmp(inputBuffer, CMD_AT) == 0){
             serialFlush();
-            if(startWifi())
+            if(startWifi(false))
                 Serial.println(CMD_AT_OK);
             else
                 Serial.println(STR_RESULT_NOK);

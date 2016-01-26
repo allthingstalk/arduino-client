@@ -19,7 +19,7 @@ char SUCCESTXT[] = " established";
 #endif
 
 //create the object
-ATTDevice::ATTDevice(String deviceId, String clientId, String clientKey)
+ATTDevice::ATTDevice(String deviceId, String clientId, String clientKey): _client(NULL), _mqttclient(NULL)
 {
 	_deviceId = deviceId;
 	_clientId = clientId;
@@ -52,6 +52,32 @@ bool ATTDevice::Connect(Client* httpClient, char httpServer[])
 		#endif
 		delay(ETHERNETDELAY);							// another small delay: sometimes the card is not yet ready to send the asset info.
 		return true;									//we have created a connection succesfully.
+	}
+}
+
+//closes any open connections (http & mqtt) and resets the device. After this call, you 
+//can call connect and/or subscribe again. Credentials remain stored.
+void ATTDevice::Close()
+{
+	CloseHTTP();
+	_mqttUserName = NULL;
+	_mqttpwd = NULL;
+	if(_mqttclient){
+		_mqttclient->disconnect();
+		_mqttclient = NULL;
+	}
+}
+
+//closes the http connection, if any.
+void ATTDevice::CloseHTTP()
+{
+	if(_client){
+		#ifdef DEBUG
+		Serial.println(F("Stopping HTTP"));
+		#endif
+		_client->flush();
+		_client->stop();
+		_client = NULL;
 	}
 }
 
@@ -145,14 +171,7 @@ bool ATTDevice::Subscribe(PubSubClient& mqttclient, const char* username, const 
 {
 	_mqttclient = &mqttclient;	
 	_serverName = "";					//no longer need this reference.
-	if(_client){
-		#ifdef DEBUG
-		Serial.println(F("Stopping HTTP"));
-		#endif
-		_client->flush();
-		_client->stop();
-		_client = NULL;
-	}
+	CloseHTTP();
 	_mqttUserName = username;
 	_mqttpwd = pwd;
 	return MqttConnect();
@@ -267,7 +286,8 @@ int ATTDevice::GetPinNr(char* topic, int topicLength)
 {
 	int result = topic[topicLength - 9] - 48;
 	
-    if(topic[topicLength - 9 - sizeof(_deviceId)] != '/'){
+	//Serial.print("char before id: "); Serial.println(topic[topicLength - 10 - _deviceId.length()]);
+    if(topic[topicLength - 10 - _deviceId.length()] != '/'){
         result += (topic[topicLength - 10] - 48) * 10;
 	}		
     return result;

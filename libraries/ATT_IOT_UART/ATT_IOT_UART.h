@@ -35,8 +35,11 @@ class ATTDevice
 		bool Init(String deviceId, String clientId, String clientKey);
 		
 		/*Start up the wifi network
-		blocks until connection has been made*/
-		bool StartWifi();
+		blocks until connection has been made
+		if forceReset == true, then any previous router settings will be removed and you will
+		have to use another device again to provide the correct settings.
+		*/
+		bool StartWifi(bool forceReset = false);
 		
 		/*connect with the http server (call first)
 		-Client: the client object to use for communicating with the cloud HTTP server (this is usually an EthernetClient, WifiClient or similar)

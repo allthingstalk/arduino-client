@@ -166,18 +166,29 @@ bool ATTDevice::Init(String deviceId, String clientId, String clientKey)
 }
 
 /*Start up the wifi network*/
-bool ATTDevice::StartWifi()
+bool ATTDevice::StartWifi(bool forceReset)
 {
     #ifdef DEBUG
     Serial.println("starting wifi");
     #endif
-    _stream->println(CMD_AT);                   //first send the at command to synchronize: we have something to wait for an 'ok' ->could be that the wifi chip is still processing a prev command and returns 'ok', in which case the new 'init' is lost.
-    bool res = expectString(CMD_AT_OK, 1000, true);	//if response, wifi is already set ok, otherwise wifi switched to router, we show the correct message to the user (otherwise the wifi module has to do 2 things: it's most likely already started the wifi server, but we want to send commands to it, which doesn't work
-	if(res == false)									//try the command 1 more time, could be that user did reset, in which case the wifi module might wake up a little too late to see that AT command
-		res = expectString(CMD_AT_OK, 1000, true);
+	bool res = false;
+	if(!forceReset)								
+	{
+		_stream->println(CMD_AT);                   //first send the at command to synchronize: we have something to wait for an 'ok' ->could be that the wifi chip is still processing a prev command and returns 'ok', in which case the new 'init' is lost.
+		res = expectString(CMD_AT_OK, 1000, true);	//if response, wifi is already set ok, otherwise wifi switched to router, we show the correct message to the user (otherwise the wifi module has to do 2 things: it's most likely already started the wifi server, but we want to send commands to it, which doesn't work		
+		if(res == false)									//try the command 1 more time, could be that user did reset, in which case the wifi module might wake up a little too late to see that AT command
+			res = expectString(CMD_AT_OK, 1000, true);
+	}
+	else{
+		_stream->println(CMD_AT_RESET_WIFI);                   //first send the at command to synchronize: we have something to wait for an 'ok' ->could be that the wifi chip is still processing a prev command and returns 'ok', in which case the new 'init' is lost.
+		res = expectString(CMD_AT_RESET_WIFI, 2000, true);	
+	}
 	if(res == false){
 		Serial.println();
-		Serial.println("The wifi module could not connect to the wifi router. The module will now switch to router mode");
+		if(!forceReset)
+			Serial.println("The wifi module could not connect to the wifi router. The module will now switch to router mode");
+		else
+			Serial.println("The credentials for the wifi module has been reset. The module will now switch to router mode");
 		Serial.println("Please use another device to connect to 'ESP8266 wifi'");
 		Serial.println("Browse to 192.168.4.1 and set the SSID and password");
 		res = expectString(CMD_AT_OK, 0, false);

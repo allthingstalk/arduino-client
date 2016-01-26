@@ -16,7 +16,6 @@ Original author: Peter Leemans (2014)
 #include <string.h>
 
 //this class represents the ATT cloud platform.
-
 class ATTDevice
 {
 	public:
@@ -24,9 +23,9 @@ class ATTDevice
 		ATTDevice(String deviceId, String clientId, String clientKey);
 		
 		/*connect with the http server (call first)
-		-Client: the client object to use for communciating with the cloud HTTP server (this is usually an EthernetClient, WifiClient or similar)
+		-Client: the client object to use for communicating with the cloud HTTP server (this is usually an EthernetClient, WifiClient or similar)
 		-httpServer: the name of the http server to use, kept in memory until after calling 'Subscribe' 
-		returns: true when subscribe was succesfulll, otherwise false.*/
+		returns: true when subscribe was successful, otherwise false.*/
 		bool Connect(Client* httpClient, char httpServer[]);
 		
 		//create or update the specified asset. (call after connecting)
@@ -44,6 +43,11 @@ class ATTDevice
 		
 		//send a data value to the cloud server for the sensor with the specified id.
 		void Send(String value, int id);
+		
+		//closes any open connections (http & mqtt) and resets the device. After this call, you 
+		//can call connect and/or subscribe again. Credentials remain stored.
+		//Note: all clients (httpclient & pubsubClient) are the caller's responsibility to clean up
+		void Close();
 	
 		//check for any new mqtt messages.
 		void Process();
@@ -55,7 +59,7 @@ class ATTDevice
 		String _deviceId;				//the device id provided by the user.
 		String _clientId;				//the client id provided by the user.	
 		String _clientKey;				//the client key provided by the user.
-		Client* _client;			//raw http communication. Possible to save some memory here: pass the client as a param in connect, put the object local in the setup function.
+		Client* _client;				//raw http communication. Possible to save some memory here: pass the client as a param in connect, put the object local in the setup function.
 		PubSubClient* _mqttclient;		//provides mqtt support
 		
 		const char* _mqttUserName;		//we store a local copy of the the mqtt username and pwd, so we can auto reconnect if the connection was lost.
@@ -67,11 +71,14 @@ class ATTDevice
 		//tries to create a connection with the mqtt broker. also used to try and reconnect.
 		bool MqttConnect();
 		
-		//read all the data from the ethernet card and display on the debug screen.
+		//read all the data from the Ethernet card and display on the debug screen.
 		void GetHTTPResult();
 		
 		//builds the content that has to be sent to the cloud using mqtt (either a csv value or a json string)
 		char* BuildContent(String value);
+		
+		//closes the http connection, if any.
+		void CloseHTTP();
 };
 
 #endif
