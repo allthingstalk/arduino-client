@@ -256,7 +256,7 @@ void ATTDevice::Send(String value, int id)
 	
 	char* Mqttstring_buff;
 	{
-		int length = _clientId.length() + _deviceId.length() + 33;
+		int length = _clientId.length() + _deviceId.length() + 34;
 		Mqttstring_buff = new char[length];
 		sprintf(Mqttstring_buff, "client/%s/out/device/%s/asset/%d/state", _clientId.c_str(), _deviceId.c_str(), id);      
 		Mqttstring_buff[length-1] = 0;
@@ -289,10 +289,11 @@ int ATTDevice::GetPinNr(char* topic, int topicLength)
 	
 	digitOffset++;
     while(topic[topicLength - digitOffset] != '/'){
-		int nextDigit = topic[topicLength - 10] - 48;
-		while(int i = 9; < dig; i++)
-			nextDigit =* 10;
+		int nextDigit = topic[topicLength - digitOffset] - 48;
+		for(int i = 9; i < digitOffset; i++)
+			nextDigit *= 10;
         result += nextDigit;
+		digitOffset++;
 	}		
     return result;
 }
