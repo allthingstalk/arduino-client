@@ -98,17 +98,17 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 	int typeLength = type.length();
 	_client->print(F("Content-Length: "));
 	{																					//make every mem op local, so it is unloaded asap
-		int length = name.length() + description.length() + typeLength + _deviceId.length();
+		int length = name.length() + description.length() + typeLength;
 		if(isActuator) 
 			length += 8;
 		else 
 			length += 6;
 		if (typeLength == 0)
-			length += 54;
+			length += 39;
 		else if(type[0] == '{')
-			length += 64;
+			length += 49;
 		else
-			length += 77;
+			length += 62;
 		_client->println(length);
 	}
     _client->println();
@@ -133,9 +133,7 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 		_client->print(type);
 		_client->print(F("\" }"));
 	}
-	_client->print(F(", \"deviceId\":\""));
-	_client->print(_deviceId);
-	_client->print(F("\" }"));
+	_client->print(F("}"));
 	_client->println();
     _client->println();
 	
