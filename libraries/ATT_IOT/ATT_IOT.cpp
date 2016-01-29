@@ -87,7 +87,7 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
     // Make a HTTP request:
 	{
 		String idStr(id);
-		_client->println("PUT /asset/" + _deviceId +  idStr  + " HTTP/1.1");
+		_client->println("PUT /device/" + _deviceId + "/asset/" + idStr  + " HTTP/1.1");
 	}
     _client->print(F("Host: "));
     _client->println(_serverName);
@@ -98,17 +98,17 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 	int typeLength = type.length();
 	_client->print(F("Content-Length: "));
 	{																					//make every mem op local, so it is unloaded asap
-		int length = name.length() + description.length() + typeLength + _deviceId.length();
+		int length = name.length() + description.length() + typeLength;
 		if(isActuator) 
 			length += 8;
 		else 
 			length += 6;
 		if (typeLength == 0)
-			length += 54;
+			length += 39;
 		else if(type[0] == '{')
-			length += 64;
+			length += 49;
 		else
-			length += 77;
+			length += 62;
 		_client->println(length);
 	}
     _client->println();
@@ -133,9 +133,7 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 		_client->print(type);
 		_client->print(F("\" }"));
 	}
-	_client->print(F(", \"deviceId\":\""));
-	_client->print(_deviceId);
-	_client->print(F("\" }"));
+	_client->print(F("}"));
 	_client->println();
     _client->println();
 	
@@ -256,9 +254,9 @@ void ATTDevice::Send(String value, int id)
 	
 	char* Mqttstring_buff;
 	{
-		int length = _clientId.length() + _deviceId.length() + 26;
+		int length = _clientId.length() + _deviceId.length() + 34;
 		Mqttstring_buff = new char[length];
-		sprintf(Mqttstring_buff, "client/%s/out/asset/%s%d/state", _clientId.c_str(), _deviceId.c_str(), id);      
+		sprintf(Mqttstring_buff, "client/%s/out/device/%s/asset/%d/state", _clientId.c_str(), _deviceId.c_str(), id);      
 		Mqttstring_buff[length-1] = 0;
 	}
 	_mqttclient->publish(Mqttstring_buff, message_buff);
@@ -284,11 +282,16 @@ void ATTDevice::MqttSubscribe()
 //returns the pin nr found in the topic
 int ATTDevice::GetPinNr(char* topic, int topicLength)
 {
-	int result = topic[topicLength - 9] - 48;
+	char digitOffset = 9;						//skip the '/command' at the end of the topic
+	int result = topic[topicLength - digitOffset] - 48; 		// - 48 to convert digit-char to integer
 	
-	//Serial.print("char before id: "); Serial.println(topic[topicLength - 10 - _deviceId.length()]);
-    if(topic[topicLength - 10 - _deviceId.length()] != '/'){
-        result += (topic[topicLength - 10] - 48) * 10;
+	digitOffset++;
+    while(topic[topicLength - digitOffset] != '/'){
+		int nextDigit = topic[topicLength - digitOffset] - 48;
+		for(int i = 9; i < digitOffset; i++)
+			nextDigit *= 10;
+        result += nextDigit;
+		digitOffset++;
 	}		
     return result;
 }
