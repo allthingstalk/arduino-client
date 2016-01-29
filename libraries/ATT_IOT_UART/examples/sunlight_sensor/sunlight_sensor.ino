@@ -6,21 +6,21 @@
   
   version 1.0 dd 26/12/2015
   
-  This sketch is an example sketch to deploy the grove temperature sensor (101020015) to the AllThingsTalk IoT developer cloud. 
+  This sketch is an example sketch to deploy the Grove sunlight sensor (101020089) to the AllThingsTalk IoT developer cloud. 
  
   
   ### Instructions
 
   1. Setup the Arduino hardware
     - Use an Arduino Genuino 101 IoT board
-    - Connect the Arduino Grove shield, make sure the switch is set to 3,3V (the formula below to calculate the temperature is based on a source voltage of 3,3V)
+    - Connect the Arduino Grove shield
 	- Connect USB cable to your computer
-    - connect a Grove sunlight sensor to PIN I2C of the Arduino shield
+    - Connect a Grove sunlight sensor to PIN I2C of the Arduino shield
     - Grove UART wifi to pin UART (D0,D1)
 
   2. Add 'ATT_IOT_UART' library to your Arduino Environment. [Try this guide](http://arduino.cc/en/Guide/Libraries)
-  3. fill in the missing strings (deviceId, clientId, clientKey, WIFI_SSID,WIFI_PWD) in the settings.h file. 
-  4. Optionally, change sensor names, labels as appropiate. For extra actuators, make certain to extend the callback code at the end of the sketch.
+  3. Fill in the missing strings (deviceId, clientId, clientKey) in the keys.h file. 
+  4. Optionally, change sensor names, labels as appropriate. For extra actuators, make certain to extend the callback code at the end of the sketch.
   4. Upload the sketch
 */
 
@@ -34,6 +34,8 @@ char httpServer[] = "api.smartliving.io";                       // HTTP API Serv
 char mqttServer[] = "broker.smartliving.io";                    // MQTT Server Address
 
 // Define the assets
+// For digital and analog sensors, we recommend to use the physical pin id as the asset id.  
+// For other sensors (I2C and UART), you can select any other (unique) number as id for the asset.
 SI114X SI1145 = SI114X();
 #define visLightId 0
 #define irLightId 1
