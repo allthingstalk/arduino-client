@@ -1,5 +1,9 @@
 #include <ESP8266WiFi.h>
 
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
+#include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
+
 #include <PubSubClient.h>
 #include <ATT_IOT.h>                            //AllThingsTalk IoT library
 #include <SPI.h>                                //required to have support for signed/unsigned long type..
@@ -18,6 +22,7 @@ void callback(char* topic, byte* payload, unsigned int length);
 WiFiClient ethClient;
 PubSubClient *pubSub = NULL;  // mqttServer, 1883, callback,
 
+#define SERIALSPEED 115200
 #define INPUTBUFFERSIZE 255
 char inputBuffer[INPUTBUFFERSIZE];                          //the input buffer for receiving commands
 String receivedPayload;
@@ -25,9 +30,47 @@ int receivedPin;
 bool dataReceived = false;
 char* serverName = NULL;
 
+
+void configModeCallback () {
+  Serial.println("Entered config mode");
+  Serial.println(WiFi.softAPIP());
+}
+
 void setup()
 {         
-  Serial.begin(19200);                         // init serial link for debugging                                                              
+  Serial.begin(SERIALSPEED);                         // init serial link 
+  delay(200);                                       //give serial a little time to init
+}
+
+bool startWifi(bool forceReset)
+{
+    //Local intialization. Once its business is done, there is no need to keep it around
+    WiFiManager wifiManager;
+	delay(200);
+    //reset settings - for testing
+	if(forceReset){											//if we reset the wifi, then the client lib will ask to start the wifi a second time, that's when we handle it properly
+		if(Device)
+			Device->Close();									//make certain that any previous connections are closed, if required.
+		wifiManager.resetSettings();
+		delay(500);											//give the serial a little bit of time to write + the wifi module has to update it's flash, which also takes a little time	
+	}
+	
+	//set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
+	wifiManager.setAPCallback(configModeCallback);
+	//fetches ssid and pass and tries to connect
+	//if it does not connect it starts an access point with the specified name, here  "ESP8266 wifi"
+	//and goes into a blocking loop awaiting configuration
+	if(!wifiManager.autoConnect("ESP8266 wifi")) {
+		Serial.println("failed to connect and hit timeout");
+		//reset and try again, or maybe put it to deep sleep
+		ESP.reset();
+		delay(1000);
+		return false;
+	} 
+	else{
+		Serial.println("connected");                        //if you get here you have connected to the WiFi
+		return true;
+	}
 }
 
 void serialFlush(){
@@ -35,20 +78,6 @@ void serialFlush(){
     char t = Serial.read();
   }
 } 
-
-void setup_wifi(char* startOfParams) {
-  delay(10);
-  char* pwd = strchr(startOfParams, ';');           //first param is ssid
-  *pwd = 0;
-  ++pwd;                                            //this now points to second param = pwd 
-  
-  WiFi.begin(startOfParams, pwd);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-  }
-  serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
-  Serial.println(CMD_WIFI_OK);
-}
 
 void init(char* startOfParams)
 {
@@ -58,13 +87,13 @@ void init(char* startOfParams)
     char* clientKey = strchr(clientId, ';');            //first param is ssid
     *clientKey = 0;
     ++clientKey;
-	if(Device != NULL){
-		delete Device;
-		Device = NULL;
-	}
+    if(Device != NULL){
+        delete Device;
+        Device = NULL;
+    }
     Device = new ATTDevice(startOfParams, clientId, clientKey);
     serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
-	Serial.println(CMD_INIT_OK);
+    Serial.println(CMD_INIT_OK);
 }
 
 void connect(char* httpServer)
@@ -77,10 +106,13 @@ void connect(char* httpServer)
     serverName = new char[len + 1];
     strncpy(serverName, httpServer, len);
     serverName[len] = 0;
-  
-    Device->Connect(&ethClient, serverName);
+
+    bool res = Device->Connect(&ethClient, serverName);
     serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
-	Serial.println(CMD_CONNECT_OK);
+	if(res)
+		Serial.println(CMD_CONNECT_OK);
+	else
+		Serial.println(STR_RESULT_NOK);
 }
 
 void addAsset(char* startOfParams)   
@@ -106,23 +138,26 @@ void addAsset(char* startOfParams)
     if(strcmp(next, "true") == 0) isActuator = true;
 
     Device->AddAsset(pin, name, description, isActuator, type);
-	delay(1000);
-	serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
-	Serial.println(CMD_ADDASSET_OK);
+    delay(100);										//the client needs some time to sync, without this, the client doesn't know that the operation stopped
+    serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
+    Serial.println(CMD_ADDASSET_OK);
 }          
              
 void subscribe(char* broker)
 {
     if(pubSub){
-		delete pubSub;
-		pubSub = NULL;
-	}
-	pubSub = new PubSubClient(ethClient);
+        delete pubSub;
+        pubSub = NULL;
+    }
+    pubSub = new PubSubClient(ethClient);
     pubSub->setServer(broker, 1883);
     pubSub->setCallback(callback);
-    Device->Subscribe(*pubSub);
+    bool res = Device->Subscribe(*pubSub);
     serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
-	Serial.println(CMD_SUBSCRIBE_OK);
+	if(res)
+		Serial.println(CMD_SUBSCRIBE_OK);
+	else
+		Serial.println(STR_RESULT_NOK);
 }    
 
 void send(char* startOfParams)
@@ -135,11 +170,11 @@ void send(char* startOfParams)
     
     Device->Send(startOfParams, pin);
     serialFlush();                                 //make certain that there are no other commands in the buffer -> the remote needs to send a new command after the ack
-	Serial.println(CMD_SEND_OK);
+    Serial.println(CMD_SEND_OK);
 }
 
 
-bool CommsDone = false;											// true when we hav received at least 1 command from client. Used to keep initializing the serial connection, so that user doesn't have to push the reset button on the wifi module before comms can begin.
+bool CommsDone = false;                                         // true when we hav received at least 1 command from client. Used to keep initializing the serial connection, so that user doesn't have to push the reset button on the wifi module before comms can begin.
  
 void loop()
 {
@@ -151,39 +186,46 @@ void loop()
         inputBuffer[0] = 0;
         char* separator = strchr(inputBuffer, ';');
         // Actually split the string in 2: replace ';' with 0
-   if(separator){
-        *separator = 0;
-        ++separator;
-   }
-        if(strcmp(inputBuffer, CMD_AT) == 0){
+        if(separator){
+            *separator = 0;
+            ++separator;
+        }
+		if(strcmp(inputBuffer, CMD_AT_RESET_WIFI) == 0){
+			serialFlush();
+            if(startWifi(true))
+                Serial.println(CMD_AT_RESET_WIFI_OK);
+            else
+                Serial.println(STR_RESULT_NOK);
+            CommsDone = true;
+		}
+        else if(strcmp(inputBuffer, CMD_AT) == 0){
             serialFlush();
-            Serial.println(CMD_AT_OK);
-			CommsDone = true;
+            if(startWifi(false))
+                Serial.println(CMD_AT_OK);
+            else
+                Serial.println(STR_RESULT_NOK);
+            CommsDone = true;
         }
         else if(strcmp(inputBuffer, CMD_INIT) == 0){
             init(separator);
-			CommsDone = true;
-		}
-        else if(strcmp(inputBuffer, CMD_WIFI) == 0){
-            setup_wifi(separator);
-			CommsDone = true;
-		}
+            CommsDone = true;
+        }
         else if(strcmp(inputBuffer, CMD_CONNECT) == 0){
             connect(separator);
-			CommsDone = true;
+            CommsDone = true;
         }
         else if(strcmp(inputBuffer, CMD_ADDASSET) == 0){
             addAsset(separator);
-			CommsDone = true;
+            CommsDone = true;
         }
         else if(strcmp(inputBuffer, CMD_SUBSCRIBE) == 0){
             subscribe(separator);
-			CommsDone = true;
-		}
+            CommsDone = true;
+        }
         else if(strcmp(inputBuffer, CMD_SEND) == 0){
             send(separator);
-			CommsDone = true;
-		}
+            CommsDone = true;
+        }
         else if(strcmp(inputBuffer, CMD_RECEIVE) == 0){
             Device->Process(); 
             if(dataReceived){
@@ -194,13 +236,13 @@ void loop()
             }
             else
                 Serial.println(STR_RESULT_OK);
-			CommsDone = true;
+            CommsDone = true;
         }
     }
-	if(CommsDone == false){
-		setup();
-		delay(1000);
-	}
+    if(CommsDone == false){
+        Serial.begin(SERIALSPEED);                         // rest serial link speed, if we don't do this, the handshake with the other device might fail
+        delay(1000);
+    }
 }
 
 // Callback function: handles messages that were sent from the iot platform to this device.

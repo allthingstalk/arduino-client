@@ -19,7 +19,7 @@ char SUCCESTXT[] = " established";
 #endif
 
 //create the object
-ATTDevice::ATTDevice(String deviceId, String clientId, String clientKey)
+ATTDevice::ATTDevice(String deviceId, String clientId, String clientKey): _client(NULL), _mqttclient(NULL)
 {
 	_deviceId = deviceId;
 	_clientId = clientId;
@@ -37,21 +37,48 @@ bool ATTDevice::Connect(Client* httpClient, char httpServer[])
     Serial.println(httpServer);
 	#endif
 
-	while (!_client->connect(httpServer, 80)) 		// if you get a connection, report back via serial:
+	if (!_client->connect(httpServer, 80)) 		// if you get a connection, report back via serial:
 	{
 		#ifdef DEBUG
 		Serial.print(HTTPSERVTEXT);
 		Serial.println(FAILED_RETRY);
 		#endif
-		delay(RETRYDELAY);
+		return false;									//we have created a connection succesfully.
 	}
+	else{
+		#ifdef DEBUG
+		Serial.print(HTTPSERVTEXT);
+		Serial.println(SUCCESTXT);
+		#endif
+		delay(ETHERNETDELAY);							// another small delay: sometimes the card is not yet ready to send the asset info.
+		return true;									//we have created a connection succesfully.
+	}
+}
 
-	#ifdef DEBUG
-	Serial.print(HTTPSERVTEXT);
-	Serial.println(SUCCESTXT);
-	#endif
-	delay(ETHERNETDELAY);							// another small delay: sometimes the card is not yet ready to send the asset info.
-	return true;									//we have created a connection succesfully.
+//closes any open connections (http & mqtt) and resets the device. After this call, you 
+//can call connect and/or subscribe again. Credentials remain stored.
+void ATTDevice::Close()
+{
+	CloseHTTP();
+	_mqttUserName = NULL;
+	_mqttpwd = NULL;
+	if(_mqttclient){
+		_mqttclient->disconnect();
+		_mqttclient = NULL;
+	}
+}
+
+//closes the http connection, if any.
+void ATTDevice::CloseHTTP()
+{
+	if(_client){
+		#ifdef DEBUG
+		Serial.println(F("Stopping HTTP"));
+		#endif
+		_client->flush();
+		_client->stop();
+		_client = NULL;
+	}
 }
 
 //create or update the specified asset.
@@ -60,7 +87,7 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
     // Make a HTTP request:
 	{
 		String idStr(id);
-		_client->println("PUT /asset/" + _deviceId +  idStr  + " HTTP/1.1");
+		_client->println("PUT /device/" + _deviceId + "/asset/" + idStr  + " HTTP/1.1");
 	}
     _client->print(F("Host: "));
     _client->println(_serverName);
@@ -71,17 +98,17 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 	int typeLength = type.length();
 	_client->print(F("Content-Length: "));
 	{																					//make every mem op local, so it is unloaded asap
-		int length = name.length() + description.length() + typeLength + _deviceId.length();
+		int length = name.length() + description.length() + typeLength;
 		if(isActuator) 
 			length += 8;
 		else 
 			length += 6;
 		if (typeLength == 0)
-			length += 54;
+			length += 39;
 		else if(type[0] == '{')
-			length += 64;
+			length += 49;
 		else
-			length += 77;
+			length += 62;
 		_client->println(length);
 	}
     _client->println();
@@ -106,27 +133,45 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 		_client->print(type);
 		_client->print(F("\" }"));
 	}
-	_client->print(F(", \"deviceId\":\""));
-	_client->print(_deviceId);
-	_client->print(F("\" }"));
+	_client->print(F("}"));
 	_client->println();
     _client->println();
 	
-    delay(ETHERNETDELAY);
+	unsigned long maxTime = millis() + 1000;
+	while(millis() < maxTime)		//wait, but for the minimum amount of time.
+	{
+		if(_client->available()) break;
+		else delay(10);
+	}
 	GetHTTPResult();			//get the response from the server and show it.
 }
 
 //connect with the http server and broker
 bool ATTDevice::Subscribe(PubSubClient& mqttclient)
 {
+	if(_clientId && _clientKey){
+		String brokerId = _clientId + ":" + _clientId;
+		return Subscribe(mqttclient, brokerId.c_str(), _clientKey.c_str());
+	}
+	else{
+		#ifdef DEBUG
+		Serial.print(MQTTSERVTEXT);
+		Serial.println("failed: invalid credentials");
+		#endif
+		return false;
+	}
+}
+
+/*Stop http processing & make certain that we can receive data from the mqtt server, given the specified username and pwd.
+  This Subscribe function can be used to connect to a fog gateway
+returns true when successful, false otherwise*/
+bool ATTDevice::Subscribe(PubSubClient& mqttclient, const char* username, const char* pwd)
+{
 	_mqttclient = &mqttclient;	
 	_serverName = "";					//no longer need this reference.
-	#ifdef DEBUG
-	Serial.println(F("Stopping HTTP"));
-	#endif
-	_client->flush();
-	_client->stop();
-	_client = NULL;
+	CloseHTTP();
+	_mqttUserName = username;
+	_mqttpwd = pwd;
 	return MqttConnect();
 }
 
@@ -138,21 +183,29 @@ bool ATTDevice::MqttConnect()
 	length = length > 22 ? 22 : length;
     _deviceId.toCharArray(mqttId, length);
 	mqttId[length] = 0;
-	String brokerId = _clientId + ":" + _clientId;
-	if (!_mqttclient->connect(mqttId, (char*)brokerId.c_str(), (char*)_clientKey.c_str())) 
-	{
+	if(_mqttUserName && _mqttpwd){
+		if (!_mqttclient->connect(mqttId, (char*)_mqttUserName, (char*)_mqttpwd)) 
+		{
+			#ifdef DEBUG
+			Serial.print(MQTTSERVTEXT);
+			Serial.println(FAILED_RETRY);
+			#endif
+			return false;
+		}
 		#ifdef DEBUG
 		Serial.print(MQTTSERVTEXT);
-		Serial.println(FAILED_RETRY);
+		Serial.println(SUCCESTXT);
+		#endif
+		MqttSubscribe();
+		return true;
+	}
+	else{
+		#ifdef DEBUG
+		Serial.print(MQTTSERVTEXT);
+		Serial.println("failed: invalid credentials");
 		#endif
 		return false;
 	}
-	#ifdef DEBUG
-	Serial.print(MQTTSERVTEXT);
-	Serial.println(SUCCESTXT);
-	#endif
-	MqttSubscribe();
-	return true;
 }
 
 //check for any new mqtt messages.
@@ -201,9 +254,9 @@ void ATTDevice::Send(String value, int id)
 	
 	char* Mqttstring_buff;
 	{
-		int length = _clientId.length() + _deviceId.length() + 26;
+		int length = _clientId.length() + _deviceId.length() + 34;
 		Mqttstring_buff = new char[length];
-		sprintf(Mqttstring_buff, "client/%s/out/asset/%s%d/state", _clientId.c_str(), _deviceId.c_str(), id);      
+		sprintf(Mqttstring_buff, "client/%s/out/device/%s/asset/%d/state", _clientId.c_str(), _deviceId.c_str(), id);      
 		Mqttstring_buff[length-1] = 0;
 	}
 	_mqttclient->publish(Mqttstring_buff, message_buff);
@@ -229,7 +282,18 @@ void ATTDevice::MqttSubscribe()
 //returns the pin nr found in the topic
 int ATTDevice::GetPinNr(char* topic, int topicLength)
 {
-	return topic[topicLength - 9] - 48;
+	char digitOffset = 9;						//skip the '/command' at the end of the topic
+	int result = topic[topicLength - digitOffset] - 48; 		// - 48 to convert digit-char to integer
+	
+	digitOffset++;
+    while(topic[topicLength - digitOffset] != '/'){
+		int nextDigit = topic[topicLength - digitOffset] - 48;
+		for(int i = 9; i < digitOffset; i++)
+			nextDigit *= 10;
+        result += nextDigit;
+		digitOffset++;
+	}		
+    return result;
 }
 
 void ATTDevice::GetHTTPResult()
