@@ -254,9 +254,10 @@ void ATTDevice::Send(String value, int id)
 	
 	char* Mqttstring_buff;
 	{
-		int length = _clientId.length() + _deviceId.length() + 34;
+		String idStr(id);																			//turn it into a string, so we can easily calculate the nr of characters that the nr requires. 
+		int length = _clientId.length() + _deviceId.length() + 33 + idStr.length();
 		Mqttstring_buff = new char[length];
-		sprintf(Mqttstring_buff, "client/%s/out/device/%s/asset/%d/state", _clientId.c_str(), _deviceId.c_str(), id);      
+		sprintf(Mqttstring_buff, "client/%s/out/device/%s/asset/%s/state", _clientId.c_str(), _deviceId.c_str(), idStr.c_str());      
 		Mqttstring_buff[length-1] = 0;
 	}
 	_mqttclient->publish(Mqttstring_buff, message_buff);
