@@ -3,6 +3,7 @@
 */
 
 #define DEBUG					//turns on debugging in the IOT library. comment out this line to save memory.
+#define FAST_MQTT
 
 
 #include "ATT_IOT.h"
@@ -211,6 +212,13 @@ bool ATTDevice::MqttConnect()
 //check for any new mqtt messages.
 void ATTDevice::Process()
 {
+	if(_mqttclient->connected() == false)
+	{
+		#ifdef DEBUG	
+		Serial.println(F("Lost broker connection,restarting")); 
+		#endif
+		MqttConnect();
+	}
 	_mqttclient->loop();
 }
 
@@ -248,8 +256,7 @@ void ATTDevice::Send(String value, int id)
 	char* message_buff = BuildContent(value);
 	
 	#ifdef DEBUG																					//don't need to write all of this if not debugging.
-	Serial.print(F("Publish to ")); Serial.print(id); Serial.print(" : "); 
-	Serial.println(message_buff);																
+	Serial.print(F("Publish to ")); Serial.print(id); Serial.print(": "); Serial.println(message_buff);																
 	#endif
 	
 	char* Mqttstring_buff;
@@ -261,7 +268,9 @@ void ATTDevice::Send(String value, int id)
 		Mqttstring_buff[length-1] = 0;
 	}
 	_mqttclient->publish(Mqttstring_buff, message_buff);
+	#ifndef FAST_MQTT											//some boards like the old arduino ethernet need a little time after sending mqtt data, other boards don't.
 	delay(100);													//give some time to the ethernet shield so it can process everything.       
+	#endif
 	delete(message_buff);
 	delete(Mqttstring_buff);
 }
@@ -288,11 +297,16 @@ int ATTDevice::GetPinNr(char* topic, int topicLength)
 	
 	digitOffset++;
     while(topic[topicLength - digitOffset] != '/'){
-		int nextDigit = topic[topicLength - digitOffset] - 48;
-		for(int i = 9; i < digitOffset; i++)
-			nextDigit *= 10;
-        result += nextDigit;
-		digitOffset++;
+		char digit = topic[topicLength - digitOffset];
+		if(digit == '-')											//we found a - sign in front of the number, so return the negative result.
+			return -result;
+		else{
+			int nextDigit = topic[topicLength - digitOffset] - 48;
+			for(int i = 9; i < digitOffset; i++)
+				nextDigit *= 10;
+			result += nextDigit;
+			digitOffset++;
+		}
 	}		
     return result;
 }
