@@ -33,7 +33,7 @@ bool NW_WatchDog::IsWatchDog(int pinNr, String& value)
 }
 
 
-void NW_WatchDog::CheckPing()
+bool NW_WatchDog::CheckPing()
 {
 	if(_nextPingAt <= millis()){
 		if(_lastReceived != _pingCounter){				//oeps, something went wrong, did not receive our last ping back in time, so close the connection (it will be reopened by the function in the base class
@@ -41,12 +41,15 @@ void NW_WatchDog::CheckPing()
 			_mqttclient->disconnect();
 			_lastReceived = 0;								//reset the counters, 
 			_pingCounter = 0;
+			return false;
 		}
 		else{
 			_pingCounter++;
 			Ping();
+			return true;
 		}
 	}
+	return true;
 }
 
 void NW_WatchDog::Ping()

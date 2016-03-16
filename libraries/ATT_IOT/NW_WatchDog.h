@@ -30,8 +30,10 @@ class NW_WatchDog
 		//send a ping to the broker
 		void Ping();
 	
-		//check if we need to resend a ping and if 
-		void CheckPing();
+		//check if we need to resend a ping and if we received the previous ping in time
+		//returns true if the previous ping was in time, when it wasn't, false is returned.
+		//upon false, you can try to recreate the connection with the broker.
+		bool CheckPing();
 		
 		//checks if we received a ping back from the broker.If not, the broker connection will be closed (and reopened upon the next call to 'process'.
 		//returns true if the pin was for the network monitor actuator. Otherwise, it returns false.
