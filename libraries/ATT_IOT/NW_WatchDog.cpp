@@ -72,6 +72,7 @@ void NW_WatchDog::Ping()
 	#endif
 	
 	_mqttclient->publish(Mqttstring_buff, message_buff.c_str());
+	Serial.println("ping sent");
 	#ifndef FAST_MQTT											//some boards like the old arduino ethernet need a little time after sending mqtt data, other boards don't.
 	delay(100);													//give some time to the ethernet shield so it can process everything.       
 	#endif

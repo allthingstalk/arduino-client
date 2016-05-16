@@ -150,6 +150,7 @@ void ATTDevice::AddAsset(int id, String name, String description, bool isActuato
 //connect with the http server and broker
 bool ATTDevice::Subscribe(PubSubClient& mqttclient)
 {
+	Serial.println("subscribing");
 	if(_clientId && _clientKey){
 		String brokerId = _clientId + ":" + _clientId;
 		return Subscribe(mqttclient, brokerId.c_str(), _clientKey.c_str());
@@ -210,16 +211,18 @@ bool ATTDevice::MqttConnect()
 }
 
 //check for any new mqtt messages.
-void ATTDevice::Process()
+bool ATTDevice::Process()
 {
 	if(_mqttclient->connected() == false)
 	{
 		#ifdef DEBUG	
-		Serial.println(F("Lost broker connection,restarting")); 
+		Serial.println(F("Lost broker connection,restarting from process")); 
 		#endif
-		MqttConnect();
+		if(MqttConnect() == false)
+			return false;
 	}
 	_mqttclient->loop();
+	return true;
 }
 
 //builds the content that has to be sent to the cloud using mqtt (either a csv value or a json string)
@@ -248,7 +251,7 @@ void ATTDevice::Send(String value, int id)
 	if(_mqttclient->connected() == false)
 	{
 		#ifdef DEBUG	
-		Serial.println(F("Lost broker connection,restarting")); 
+		Serial.println(F("Lost broker connection,restarting from send")); 
 		#endif
 		MqttConnect();
 	}

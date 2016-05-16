@@ -50,7 +50,7 @@ class ATTDevice
 		void Close();
 	
 		//check for any new mqtt messages.
-		void Process();
+		bool Process();
 		
 		//returns the pin nr found in the topic
 		int GetPinNr(char* topic, int topicLength);
