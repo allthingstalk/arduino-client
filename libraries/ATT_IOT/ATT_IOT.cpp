@@ -1,5 +1,5 @@
 /*
-	ATT_IOT.cpp - SmartLiving.io Arduino library 
+	ATT_IOT.cpp - AllThingsTalk.io Arduino library 
 */
 
 #define DEBUG					//turns on debugging in the IOT library. comment out this line to save memory.

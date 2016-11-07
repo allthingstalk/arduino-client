@@ -1,4 +1,4 @@
-#include <Ethernet.h>
+#include <Ethernet2.h>
 #include <EthernetClient.h>
 
 
@@ -19,8 +19,8 @@ char clientId[] = "clientId";
 char clientKey[] = "clientKey";
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "api.smartliving.io";                   // HTTP API Server host
-char* mqttServer = "broker.smartliving.io";                   
+char httpServer[] = "api.AllThingsTalk.io";                   // HTTP API Server host
+char* mqttServer = "broker.AllThingsTalk.io";                   
 
 //required for the device
 void callback(char* topic, byte* payload, unsigned int length);

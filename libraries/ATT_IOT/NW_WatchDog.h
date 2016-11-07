@@ -1,8 +1,9 @@
 /*
-AllThingsTalk - SmartLiving.io Arduino library 
+AllThingsTalk - AllThingsTalk.io Arduino library 
 Released into the public domain.
 
 15/3/2016	Jan Bogaerts 	release 1
+07/11/2016	Jan Bogaerts 	rebrand to AllThingsTalk
 */
 
 #ifndef ATT_NW_WatchDog_h

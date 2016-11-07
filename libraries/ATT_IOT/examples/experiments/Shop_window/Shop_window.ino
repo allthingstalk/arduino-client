@@ -1,4 +1,4 @@
-#include <Ethernet.h>
+#include <Ethernet2.h>
 #include <EthernetClient.h>
 
 #include <PubSubClient.h>
@@ -7,7 +7,7 @@
 #include <SPI.h>                                      // required to have support for signed/unsigned long type.
 
 /*
-  SmartLiving Makers Arduino Experiment 
+  AllThingsTalk Makers Arduino Experiment 
 
   ### Instructions
 
@@ -30,8 +30,8 @@ char clientId[] = ""; // Your client id comes here
 char clientKey[] = "";// Your client key comes here
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "api.smartliving.io";                  // HTTP API Server host
-char* mqttServer = "broker.smartliving.io";                   
+char httpServer[] = "api.AllThingsTalk.io";                  // HTTP API Server host
+char* mqttServer = "broker.AllThingsTalk.io";                   
 
 int LED = 8;                                        // Pin 8 is the vibration motor output pin and it's also used to construct the AssetID
 

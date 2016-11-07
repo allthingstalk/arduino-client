@@ -5,10 +5,10 @@
 #include <SPI.h>                                //required to have support for signed/unsigned long type..
 
 /*
-  SmartLiving Makers Arduino Demo Sketch
+  AllThingsTalk Makers Arduino Demo Sketch
   version 2.0 dd 25/02/2015
   
-  This file is an example sketch to deploy a digital Actuator in the SmartLiving.io IoT platform.
+  This file is an example sketch to deploy a digital Actuator in the AllThingsTalk.io IoT platform.
   
   ### Instructions
 
@@ -30,7 +30,7 @@
 */
 
 // Enter below your client credentials. 
-//These credentials can be found in the configuration pane under your device in the smartliving.io website 
+//These credentials can be found in the configuration pane under your device in the AllThingsTalk.io website 
 
 char deviceId[] = ""; // Your device id comes here
 char clientId[] = ""; // Your client id comes here;
@@ -41,8 +41,8 @@ const char* password = "pwd for your network";
 
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "api.smartliving.io";                   // HTTP API Server host                  
-char mqttServer[] = "broker.smartliving.io";                // MQTT Server Address 
+char httpServer[] = "api.AllThingsTalk.io";                   // HTTP API Server host                  
+char mqttServer[] = "broker.AllThingsTalk.io";                // MQTT Server Address 
 
 
 // Define PIN numbers & id's for assets

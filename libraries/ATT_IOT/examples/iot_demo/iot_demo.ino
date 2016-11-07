@@ -1,4 +1,4 @@
-#include <Ethernet.h>
+#include <Ethernet2.h>
 #include <EthernetClient.h>
 
 #include <PubSubClient.h>
@@ -34,8 +34,8 @@ char clientId[] = "YOUR_CLIENT_ID_HERE";
 char clientKey[] = "YOUR_CLIENT_KEY_HERE";
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "api.smartliving.io";                   // HTTP API Server host
-char* mqttServer = "broker.smartliving.io";                   
+char httpServer[] = "api.AllThingsTalk.io";                   // HTTP API Server host
+char* mqttServer = "broker.AllThingsTalk.io";                   
 
 int knobPin = 0;                                            // Analog 0 is the input pin + identifies the asset on the cloud platform
 int ledPin = 8;                                             // Pin 8 is the LED output pin + identifies the asset on the cloud platform

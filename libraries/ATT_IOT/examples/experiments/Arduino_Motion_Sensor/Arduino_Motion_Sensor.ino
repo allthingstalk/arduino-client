@@ -1,13 +1,13 @@
-#include <Ethernet.h>
+#include <Ethernet2.h>
 #include <EthernetClient.h>
 
 #include <PubSubClient.h>
 
-#include <ATT_IOT.h>  // SmartLiving for Makers Arduino Library
+#include <ATT_IOT.h>  // AllThingsTalk for Makers Arduino Library
 #include <SPI.h>                                  //required to have support for signed/unsigned long type.         
 
 /*
-  PIR Motion Sensor SmartLiving Makers Arduino Example
+  PIR Motion Sensor AllThingsTalk Makers Arduino Example
   version 1.0 09/10/2014
   
   ### Instructions
@@ -32,8 +32,8 @@ char clientId[] = ""; // Your client id comes here;
 char clientKey[] = ""; // Your client key comes here;
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "api.smartliving.io";                   // HTTP API Server host                  
-char mqttServer[] = "broker.smartliving.io";                // MQTT Server IP Address
+char httpServer[] = "api.AllThingsTalk.io";                   // HTTP API Server host                  
+char mqttServer[] = "broker.AllThingsTalk.io";                // MQTT Server IP Address
 
 int PIR_MOTION_SENSOR = 2;                                  // Define PIN number on shield & also used to construct Unique AssetID                      
 int LED = 8;                                                // Define PIN number on shield & also used to construct Unique AssetID

@@ -43,8 +43,8 @@ int a1=8;
 int a1Id=1;
 
 ATTDevice Device(deviceId, clientId, clientKey);                //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "api.smartliving.io";                       // HTTP API Server host                  
-char mqttServer[] = "broker.smartliving.io";                    // MQTT Server Address
+char httpServer[] = "api.AllThingsTalk.io";                       // HTTP API Server host                  
+char mqttServer[] = "broker.AllThingsTalk.io";                    // MQTT Server Address
 
 //required for the device
 void callback(char* topic, byte* payload, unsigned int length);

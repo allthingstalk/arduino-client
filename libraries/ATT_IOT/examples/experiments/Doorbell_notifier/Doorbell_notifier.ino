@@ -1,13 +1,13 @@
-#include <Ethernet.h>
+#include <Ethernet2.h>
 #include <EthernetClient.h>
 
 #include <PubSubClient.h>
 
-#include <ATT_IOT.h> // SmartLiving for Makers Arduino Library
+#include <ATT_IOT.h> // AllThingsTalk for Makers Arduino Library
 #include <SPI.h>                                //required to have support for signed/unsigned long type.               
 
 /*
-  SmartLiving Makers Arduino Experiment
+  AllThingsTalk Makers Arduino Experiment
   version 1.0 09/10/2014
   
   ### Instructions
@@ -33,8 +33,8 @@ char clientId[] = ""; // Your client id comes here;
 char clientKey[] = ""; // Your client key comes here;
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "api.smartliving.io";                   // HTTP API Server host                  
-char mqttServer[] = "broker.smartliving.io";                // MQTT(ATT1) Server IP Address
+char httpServer[] = "api.AllThingsTalk.io";                   // HTTP API Server host                  
+char mqttServer[] = "broker.AllThingsTalk.io";                // MQTT(ATT1) Server IP Address
 
 int doorbell = 8;                                            // Digital 8 is the input pin, this corresponds with the number on the Grove shiled where the push button is attached to
 

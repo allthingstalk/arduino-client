@@ -1,4 +1,4 @@
-#include <Ethernet.h>
+#include <Ethernet2.h>
 #include <EthernetClient.h>
 
 #include <PubSubClient.h>
@@ -6,10 +6,10 @@
 #include <SPI.h>                                //required to have support for signed/unsigned long type.
 
 /*
-  SmartLiving Makers Arduino Demo Sketch
+  AllThingsTalk Makers Arduino Demo Sketch
   version 2.0 dd 25/02/2015
   
-  This file is an example sketch to deploy an analog sensor in the SmartLiving.io IoT platform.
+  This file is an example sketch to deploy an analog sensor in the AllThingsTalk.io IoT platform.
   
   ### Instructions
 
@@ -29,7 +29,7 @@
 */
 
 // Enter below your client credentials. 
-//These credentials can be found in the configuration pane under your device in the smartliving.io website 
+//These credentials can be found in the configuration pane under your device in the maker.AllThingsTalk.io website 
 
 char deviceId[] = ""; // Your device id comes here
 char clientId[] = ""; // Your client id comes here;
@@ -37,8 +37,8 @@ char clientKey[] = ""; // Your client key comes here;
 
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "api.smartliving.io";                   // HTTP API Server host                  
-char mqttServer[] = "broker.smartliving.io";            // MQTT Server Address
+char httpServer[] = "api.AllThingsTalk.io";                   // HTTP API Server host                  
+char mqttServer[] = "broker.AllThingsTalk.io";            // MQTT Server Address
 
 
 // Define PIN numbers for assets
@@ -77,7 +77,7 @@ void loop()
   if (curTime > (time + 3000))                          // publish readings every 3 seconds
   {
     unsigned int AnalogSensorRead = analogRead(AnalogSensor);           // read from Analog Sensor (photocell)
-    Device.Send(String(AnalogSensorRead), AnalogSensor);                        // Send Analog Sensor data to smartliving.io
+    Device.Send(String(AnalogSensorRead), AnalogSensor);                        // Send Analog Sensor data to AllThingsTalk.io
     
     time = curTime;
   }

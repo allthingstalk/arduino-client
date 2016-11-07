@@ -1,10 +1,11 @@
 /*
-AllThingsTalk - SmartLiving.io Arduino library 
+AllThingsTalk - AllThingsTalk.io Arduino library 
 Released into the public domain.
 
 Original author: Peter Leemans (2014)
 2/5/2014	Jan Bogaerts	Convert to library
 2/3/2015	Jan Bogaerts 	release 2
+07/11/2016	Jan Bogaerts 	rebrand to AllThingsTalk
 */
 
 #ifndef ATTDevice_h
