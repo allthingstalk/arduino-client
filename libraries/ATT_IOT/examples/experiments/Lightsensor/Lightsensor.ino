@@ -1,3 +1,17 @@
+/*
+   Copyright arduino-client AllThingsTalk
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*/
+
 #include <Ethernet2.h>
 #include <EthernetClient.h>
 
@@ -32,8 +46,8 @@ char clientId[] = ""; // Your client id comes here;
 char clientKey[] = ""; // Your client key comes here;
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-char httpServer[] = "api.AllThingsTalk.io";        // HTTP API Server host                  
-char mqttServer[] = "broker.AllThingsTalk.io";            // MQTT(ATT1) Server IP Address
+#define httpServer "api.AllThingsTalk.com"                  // HTTP API Server host                  
+#define mqttServer httpServer                				// MQTT Server Address 
 
 int lichtsensor = 0;                                            // Analog 0 is the input pin, this corresponds with the number on the Grove shiled where the Lightsensor is attached to, it's also used to construct the assetID
 
