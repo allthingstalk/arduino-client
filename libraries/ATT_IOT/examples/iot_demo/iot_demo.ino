@@ -48,7 +48,7 @@ char clientId[] = "YOUR_CLIENT_ID_HERE";
 char clientKey[] = "YOUR_CLIENT_KEY_HERE";
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-#define httpServer "api.AllThingsTalk.com"                  // HTTP API Server host                  
+#define httpServer "api.AllThingsTalk.io"                  // HTTP API Server host                  
 #define mqttServer httpServer                				// MQTT Server Address 
 
 int knobPin = 0;                                            // Analog 0 is the input pin + identifies the asset on the cloud platform

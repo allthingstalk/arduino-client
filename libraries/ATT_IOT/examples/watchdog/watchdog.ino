@@ -33,7 +33,7 @@ char clientId[] = "clientId";
 char clientKey[] = "clientKey";
 
 ATTDevice Device(deviceId, clientId, clientKey);            //create the object that provides the connection to the cloud to manager the device.
-#define httpServer "api.AllThingsTalk.com"                  // HTTP API Server host                  
+#define httpServer "api.AllThingsTalk.io"                  // HTTP API Server host                  
 #define mqttServer httpServer                				// MQTT Server Address 
 
 //required for the device
