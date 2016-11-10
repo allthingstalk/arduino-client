@@ -35,7 +35,7 @@ class NW_WatchDog
 		NW_WatchDog(PubSubClient& mqttclient, const char* deviceId, const char* clientId, unsigned int frequency = 300000);
 		
 
-		void Setup(ATTDevice& device);
+		//void Setup(ATTDevice& device);
 		
 		//send a ping to the broker
 		void Ping();

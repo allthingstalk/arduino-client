@@ -59,7 +59,6 @@ void setup()
   while(!Device.Connect(&ethClient, httpServer))            // connect the device with the IOT platform.
     Serial.println("retrying");
   Device.AddAsset(ledPin, "led", "light emitting diode", true, "boolean");
-  WatchDog.Setup(Device);                                   //create the required assets for the watchdog   
    while(!Device.Subscribe(pubSub))                          // make certain that we can receive message from the iot platform (activate mqtt)
     Serial.println("retrying"); 
   WatchDog.Ping();                                          //send the first ping to initiate the process.

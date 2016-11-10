@@ -30,10 +30,10 @@ NW_WatchDog::NW_WatchDog(PubSubClient& mqttclient, const char* deviceId, const c
 	_frequency = frequency;
 }
 
-void NW_WatchDog::Setup(ATTDevice& device)
-{
-	device.AddAsset(WATCHDOG_ID, "network watchdog", "used to verify the connectivity with the broker", true, "integer");
-}
+//void NW_WatchDog::Setup(ATTDevice& device)
+//{
+//	device.AddAsset(WATCHDOG_ID, "network watchdog", "used to verify the connectivity with the broker", true, "integer");
+//}
 
 
 bool NW_WatchDog::IsWatchDog(int pinNr, String& value)
