@@ -44,9 +44,9 @@
   - Make certain that the data type you used to create the asset is the expected data type. Ex, when you define the asset as 'int', don't send strings or boolean values.
 */
 
-char deviceId[] = "PTFcFdHlkjuSECMWdDjTyd2";
-char clientId[] = "jb1";
-char clientKey[] = "sa5slr2vhcf";
+char deviceId[] = "";
+char clientId[] = "";
+char clientKey[] = "";
 
 //Warning the LinkIt maps pin numbers differently compared to the arduino. LinkIt pin numbers can be 
 //bigger then 9, which doesn't work well with the AllthingsTalk library: it expects asset id's between 0 and 9, 
