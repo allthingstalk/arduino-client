@@ -48,9 +48,7 @@ char deviceId[] = "";
 char clientId[] = "";
 char clientKey[] = "";
 
-//Warning the LinkIt maps pin numbers differently compared to the arduino. LinkIt pin numbers can be 
-//bigger then 9, which doesn't work well with the AllthingsTalk library: it expects asset id's between 0 and 9, 
-//the solution: define a different asset id for each pin, which is in the correct range.
+//note: this remapping was done for legacy reasons (linkitone can have pins > 10 which was not handled in the old version of the lib, current version can handle this.)
 int a0=A0;
 int a0Id=0;
 int a1=8;
@@ -81,7 +79,7 @@ void setup()
   }
   Serial.println("connected");
 
-  while(!Device.Connect(&ethClient, httpServer))                        // connect the device with the IOT platform.
+  while(!Device.Connect(&c, httpServer))                        // connect the device with the IOT platform.
     Serial.println("retrying");
   Device.AddAsset(a0Id, "knob", "rotary switch",false, "integer");
   Device.AddAsset(a1Id, "led", "light emitting diode", true, "boolean");
@@ -117,7 +115,6 @@ void callback(char* topic, byte* payload, unsigned int length)
     message_buff[length] = '\0';                      //make certain that it ends with a null           
           
     msgString = String(message_buff);
-    msgString.toLowerCase();                  //to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent)
   }
   int* idOut = NULL;
   {                                                       //put this in a sub block, so any unused memory can be freed as soon as possible, required to save mem while sending data
@@ -130,6 +127,7 @@ void callback(char* topic, byte* payload, unsigned int length)
     
     if (pinNr == a1Id)
     {
+      msgString.toLowerCase();                  //to make certain that our comparison later on works ok (it could be that a 'True' or 'False' was sent) 
       if (msgString == "false") {
         Serial.println("LED off");  
             digitalWrite(a1, LOW);           //change the LED status to false
