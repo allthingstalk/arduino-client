@@ -19,5 +19,5 @@ The library includes a number of example sketches which demonstrate how assets o
 The download also includes a number of experiments to get you started with more features of  the AllThingsTalk ‘Internet of Things’ platform such as automation and notifications.
 
 Want more information ?  
-Check out the [documentation](http://allthingstalk.com/docs/tutorials/arduino/setup).
+Check out the [documentation](http://docs.allthingstalk.com/developers/libraries/arduino/).
 
