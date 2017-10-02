@@ -1,3 +1,9 @@
+### This library is deprecated
+
+arduino-client library is deprecated, and will not receive any further updates. Please use the new [arduino-sdk](https://github.com/allthingstalk/arduino-sdk) instead.
+
+---
+
 arduino-client
 ==============
 
