@@ -296,14 +296,15 @@ void ATTDevice::Send(String value, int id)
 //subscribe to the mqtt topic so we can receive data from the server.
 void ATTDevice::MqttSubscribe()
 {
-	String MqttString = "client/" + _clientId + "/in/device/" + _deviceId + "/asset/+/command";  //the arduino is only interested in the actuator commands, no management commands
-	char Mqttstring_buff[MqttString.length()+1];
-    MqttString.toCharArray(Mqttstring_buff, MqttString.length()+1);
-    _mqttclient->subscribe(Mqttstring_buff);
+    int length = _clientId.length() + _deviceId.length() + 35;
+    char* Mqttstring_buff = new char[length];
+    sprintf(Mqttstring_buff, "client/%s/in/device/%s/asset/+/command", _clientId.c_str(), _deviceId.c_str());
+    bool result = _mqttclient->subscribe(Mqttstring_buff);
 
-	#ifdef DEBUG
-    Serial.println("MQTT Client subscribed");
-	#endif
+    #ifdef DEBUG
+    Serial.print(result);
+    Serial.println(" MQTT Client subscribed");
+    #endif
 }
 
 //returns the pin nr found in the topic
